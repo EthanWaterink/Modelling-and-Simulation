@@ -51,10 +51,29 @@ def setupGrid(width, height):
 		for w in range(width):
 			intersection = grid[h][w]
 			# set neighbours
-			if h+1 < height: intersection.neighbours[Direction.NORTH] = grid[h+1][w]
+			if h-1 >= 0:     intersection.neighbours[Direction.NORTH] = grid[h-1][w]
 			if w+1 < width:  intersection.neighbours[Direction.EAST]  = grid[h][w+1]
-			if h-1 >= 0:     intersection.neighbours[Direction.SOUTH] = grid[h-1][w]
+			if h+1 < height: intersection.neighbours[Direction.SOUTH] = grid[h+1][w]
 			if w-1 >= 0:     intersection.neighbours[Direction.WEST]  = grid[h][w-1]
+
+	# setup lanes
+	for h in range(height):
+		for w in range(width):
+			intersection = grid[h][w]
+			for direction in list(Direction):
+				# skip if there is no road in this direction
+				if intersection.neighbours[direction] == None:
+					continue
+
+				# TODO: probably better way to implement this:
+				# 0 means this lane can be used, -1 if not
+				
+				# determine whether we can make the turn
+				intersection.lanes[direction] = [
+					0 if intersection.neighbours[(direction+3)%len(Direction)] else -1,
+					0 if intersection.neighbours[(direction+2)%len(Direction)] else -1,
+					0 if intersection.neighbours[(direction+1)%len(Direction)] else -1
+				]
 
 	return grid
 
