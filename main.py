@@ -1,5 +1,5 @@
-from setup import setup_grid
-from config import *
+from models import Grid
 
 if __name__ == "__main__":
-    grid = setup_grid(WIDTH, HEIGHT)
+    grid = Grid()
+    grid.plot_grid()
