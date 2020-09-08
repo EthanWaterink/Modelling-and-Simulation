@@ -1,5 +1,8 @@
 from enum import Enum, IntEnum
 import random
+import matplotlib.pyplot as plt
+
+import setup
 from config import *
 
 
@@ -29,6 +32,7 @@ class Light(Enum):
 
 class Car(object):
     """Car object"""
+    direction: Direction
 
     # All cars have the same constant velocity in km/h.
     VELOCITY = 50
@@ -56,12 +60,14 @@ class Intersection(object):
     """Intersection object"""
 
     def __init__(self, h, w):
-        # a maximum of 4 neighbours (one for each direction)
+        # An intersection has a maximum of 4 neighbours (one for each direction).
         self.neighbours = [None, None, None, None]
-        # in every direction there is a maximum of 3 lanes,
-        # depending on the orientation and neighbours of the intersection
+
+        # In every direction there is a maximum of 3 lanes, depending on the orientation and neighbours of the
+        # intersection.
         self.lanes = [[None, None, None], [None, None, None], [None, None, None], [None, None, None]]
-        # position [h,w] on the grid
+
+        # Position [h,w] on the grid
         self.h = h
         self.w = w
 
@@ -77,4 +83,20 @@ class Lane(object):
 
     def __init__(self, intersection):
         self.intersection = intersection
-        self.cars = []  # cars waiting in front of red light (could possibly be a counter?)
+        self.cars = []  # Cars waiting in front of red light (could possibly be a counter?).
+
+
+class Grid(object):
+    def __init__(self):
+        self.grid = setup.setup_grid(WIDTH, HEIGHT)
+
+    def plot_grid(self):
+        for row in self.grid:
+            for intersection in row:
+                plt.plot(intersection.w, intersection.h, 'o', color='blue')
+                for i in range(0, 4):
+                    neighbour = intersection.neighbours[i]
+                    if neighbour is not None:
+                        plt.plot([intersection.w, neighbour.w], [intersection.h, neighbour.h], '-', color='black')
+
+        plt.show()
