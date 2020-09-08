@@ -1,4 +1,6 @@
 import models
+import random
+import config
 
 
 def setup_grid(width, height):
@@ -9,14 +11,15 @@ def setup_grid(width, height):
     for h in range(height):
         for w in range(width):
             intersection = grid[h][w]
-            # set neighbours
-            if h - 1 >= 0:
+
+            # Set a neighbour based on a probability.
+            if h - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
                 intersection.neighbours[models.Direction.NORTH] = grid[h - 1][w]
-            if w + 1 < width:
+            if w + 1 < width and random.random() <= config.NEIGHBOUR_PROBABILITY:
                 intersection.neighbours[models.Direction.EAST] = grid[h][w + 1]
-            if h + 1 < height:
+            if h + 1 < height and random.random() <= config.NEIGHBOUR_PROBABILITY:
                 intersection.neighbours[models.Direction.SOUTH] = grid[h + 1][w]
-            if w - 1 >= 0:
+            if w - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
                 intersection.neighbours[models.Direction.WEST] = grid[h][w - 1]
 
             # Setup lanes
