@@ -59,7 +59,7 @@ class Car(object):
 class Intersection(object):
     """Intersection object"""
 
-    def __init__(self, h, w):
+    def __init__(self, y, x):
         # An intersection has a maximum of 4 neighbours (one for each direction).
         self.neighbours = [None, None, None, None]
 
@@ -67,12 +67,12 @@ class Intersection(object):
         # intersection.
         self.lanes = [[None, None, None], [None, None, None], [None, None, None], [None, None, None]]
 
-        # Position [h,w] on the grid
-        self.h = h
-        self.w = w
+        # Position [y,x] on the grid
+        self.y = y
+        self.x = x
 
     def __str__(self):
-        return "Intersection[" + str(self.h) + "," + str(self.w) + "]"
+        return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
     def requiresTrafficLights(self):
         return sum(n is not None for n in self.neighbours) >= 3
@@ -93,10 +93,12 @@ class Grid(object):
     def plot_grid(self):
         for row in self.grid:
             for intersection in row:
-                plt.plot(intersection.w, intersection.h, 'o', color='blue')
+                plt.plot(intersection.x, intersection.y, 'o', color='blue')
                 for i in range(0, 4):
                     neighbour = intersection.neighbours[i]
                     if neighbour is not None:
-                        plt.plot([intersection.w, neighbour.w], [intersection.h, neighbour.h], '-', color='black')
+                        plt.arrow(intersection.x, intersection.y, (neighbour.x - intersection.x) / 2,
+                                  (neighbour.y - intersection.y) / 2, head_width=.2, head_length=.2, color='grey')
+                        plt.plot([intersection.x, neighbour.x], [intersection.y, neighbour.y], '-', color='black')
 
         plt.show()
