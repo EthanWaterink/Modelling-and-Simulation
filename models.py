@@ -7,7 +7,7 @@ from config import *
 
 
 class Turning(IntEnum):
-    """The possible turns a car can take"""
+    """The possible turns a vehicle can take"""
     LEFT = 0
     STRAIGHT = 1
     RIGHT = 2
@@ -20,7 +20,7 @@ class Direction(IntEnum):
     SOUTH = 2
     WEST = 3
 
-    # returns in what direction a car is going after turning
+    # Returns in what direction a vehicle is going after turning.
     def turn(self, turning):
         return (self + 1 + turning) % len(Direction)
 
@@ -30,11 +30,11 @@ class Light(Enum):
     OFF = 1
 
 
-class Car(object):
-    """Car object"""
+class Vehicle(object):
+    """Vehicle object"""
     direction: Direction
 
-    # All cars have the same constant velocity in km/h.
+    # All vehicles have the same constant velocity in km/h.
     VELOCITY = 50
 
     # Because the road length is constant as well, the time it takes to drive to the other side is constant,
@@ -48,7 +48,7 @@ class Car(object):
         self.direction = DEFAULT_DIRECTION
 
     def __str__(self):
-        return "Car[" + str(self.VELOCITY) + " km/h, turning " + str(self.direction) + "]"
+        return "Vehicle[" + str(self.VELOCITY) + " km/h, turning " + str(self.direction) + "]"
 
     def drive(self):
         print("Driving")
@@ -83,7 +83,7 @@ class Lane(object):
 
     def __init__(self, intersection):
         self.intersection = intersection
-        self.cars = []  # Cars waiting in front of red light (could possibly be a counter?).
+        self.vehicles = []  # Cars waiting in front of red light (could possibly be a counter?).
 
 
 class Grid(object):
