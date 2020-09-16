@@ -3,11 +3,6 @@ import random
 import config
 
 
-def get_entrance_coordinate(side, possible_indices):
-    random.shuffle(possible_indices[side])
-    return possible_indices[side].pop()
-
-
 def setup_grid(width, height):
     random.seed(config.RANDOM_SEED)
 
@@ -51,3 +46,16 @@ def setup_lanes(intersection):
                 # Add traffic lights for cross and T-intersections.
                 if intersection.requiresTrafficLights():
                     lane.trafficLight = models.Light.ON
+
+
+def setup_vehicles(grid):
+    for vehicle_id in range(random.randint(3, config.WIDTH * config.HEIGHT)):
+        x = random.randint(0, config.WIDTH - 1)
+        y = random.randint(0, config.HEIGHT - 1)
+
+        while grid[y][x] is None:
+            x = random.randint(0, config.WIDTH)
+            y = random.randint(0, config.HEIGHT)
+
+        grid[y][x].vehicles.append(models.Vehicle(vehicle_id))
+

@@ -34,21 +34,14 @@ class Vehicle(object):
     """Vehicle object"""
     direction: Direction
 
-    # All vehicles have the same constant velocity in km/h.
-    VELOCITY = 50
-
-    # Because the road length is constant as well, the time it takes to drive to the other side is constant,
-    # namely time = 3600 * velocity * distance
-    TIME = 3600 * VELOCITY * ROAD_LENGTH
-
-    def __init__(self):
-        # TODO: choose from lanes (not all lanes have all Turnings)
+    def __init__(self, vehicle_id):
+        self.id = vehicle_id
         self.turning = random.choice(list(Turning))
         self.destination = None
         self.direction = DEFAULT_DIRECTION
 
     def __str__(self):
-        return "Vehicle[" + str(self.VELOCITY) + " km/h, turning " + str(self.direction) + "]"
+        return "Vehicle[turning " + str(self.direction) + "]"
 
     def drive(self):
         print("Driving")
@@ -58,7 +51,6 @@ class Vehicle(object):
 
 class Intersection(object):
     """Intersection object"""
-
     def __init__(self, y, x):
         # An intersection has a maximum of 4 neighbours (one for each direction).
         self.neighbours = [None, None, None, None]
@@ -70,6 +62,8 @@ class Intersection(object):
         # Position [y,x] on the grid
         self.y = y
         self.x = x
+
+        self.vehicles = []
 
     def __str__(self):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
@@ -89,16 +83,24 @@ class Lane(object):
 class Grid(object):
     def __init__(self):
         self.grid = setup.setup_grid(WIDTH, HEIGHT)
+        setup.setup_vehicles(self.grid)
 
     def plot_grid(self):
         for row in self.grid:
             for intersection in row:
-                plt.plot(intersection.x, intersection.y, 'o', color='blue')
+                if intersection is None:
+                    continue
+
+                # Plot lanes
                 for i in range(0, 4):
                     neighbour = intersection.neighbours[i]
                     if neighbour is not None:
                         plt.arrow(intersection.x, intersection.y, (neighbour.x - intersection.x) / 2,
                                   (neighbour.y - intersection.y) / 2, head_width=.2, head_length=.2, color='grey')
                         plt.plot([intersection.x, neighbour.x], [intersection.y, neighbour.y], '-', color='black')
+
+                # Plot number of vehicles
+                plt.text(intersection.x, intersection.y, str(len(intersection.vehicles)), color="red",
+                         backgroundcolor="grey", va="center", ha="center")
 
         plt.show()
