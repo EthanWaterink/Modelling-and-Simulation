@@ -34,11 +34,10 @@ class Vehicle(object):
     """Vehicle object"""
     direction: Direction
 
-    def __init__(self, vehicle_id):
+    def __init__(self, vehicle_id, direction):
         self.id = vehicle_id
         self.turning = random.choice(list(Turning))
         self.destination = None
-        self.direction = DEFAULT_DIRECTION
 
     def __str__(self):
         return "Vehicle[turning " + str(self.direction) + "]"

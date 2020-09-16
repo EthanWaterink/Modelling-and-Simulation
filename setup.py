@@ -48,14 +48,19 @@ def setup_lanes(intersection):
                     lane.trafficLight = models.Light.ON
 
 
+def get_random_vehicle_state(grid):
+    x = random.randint(0, config.WIDTH - 1)
+    y = random.randint(0, config.HEIGHT - 1)
+    possible_directions = [d for d in grid[y][x].neighbours if d is not None]
+    return x, y, possible_directions
+
+
 def setup_vehicles(grid):
     for vehicle_id in range(random.randint(3, config.WIDTH * config.HEIGHT)):
-        x = random.randint(0, config.WIDTH - 1)
-        y = random.randint(0, config.HEIGHT - 1)
+        x, y, possible_directions = get_random_vehicle_state(grid)
 
-        while grid[y][x] is None:
-            x = random.randint(0, config.WIDTH)
-            y = random.randint(0, config.HEIGHT)
+        while grid[y][x] is None or len(possible_directions) < 1:
+            x, y, possible_directions = get_random_vehicle_state(grid)
 
-        grid[y][x].vehicles.append(models.Vehicle(vehicle_id))
+        grid[y][x].vehicles.append(models.Vehicle(vehicle_id, random.choice(possible_directions)))
 
