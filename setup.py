@@ -2,61 +2,53 @@ import models
 import random
 
 
-def setup_grid(width, height, neighbour_probability):
-    # Initialize the grid and all intersections. Add margins at each side for the entrances/exits.
-    grid = [[models.Intersection(y, x) for x in range(width)] for y in range(height)]
+def add_lanes(origin_intersection, goal_intersection, direction):
+    origin_intersection.outgoing[direction] = goal_intersection
+    goal_intersection.incoming[models.Direction.opposite_direction(direction)] = origin_intersection
+
+
+def setup_intersections(config):
+    # Initialize the grid and all intersections.
+    grid = [[models.Intersection(y, x, config.DEFAULT_LAST_DIRECTION_GREEN) for x in range(config.GRID_WIDTH)] for y in
+            range(config.GRID_HEIGHT)]
 
     # Setup neighbour relations.
-    for y in range(height):
-        for x in range(width):
+    # TODO: Make sure every intersection has at least one incoming and one outgoing lane.
+    for y in range(config.GRID_HEIGHT):
+        for x in range(config.GRID_WIDTH):
             intersection = grid[y][x]
 
             # Set a neighbour based on a probability.
-            if y - 1 > 0 and random.random() <= neighbour_probability:
-                intersection.neighbours[models.Direction.SOUTH] = grid[y - 1][x]
-            if x + 1 < width and random.random() <= neighbour_probability:
-                intersection.neighbours[models.Direction.EAST] = grid[y][x + 1]
-            if y + 1 < height and random.random() <= neighbour_probability:
-                intersection.neighbours[models.Direction.NORTH] = grid[y + 1][x]
-            if x - 1 > 0 and random.random() <= neighbour_probability:
-                intersection.neighbours[models.Direction.WEST] = grid[y][x - 1]
-
-            # Setup lanes
-            setup_lanes(intersection)
+            if y - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
+                add_lanes(intersection, grid[y - 1][x], models.Direction.SOUTH)
+            if x + 1 < config.GRID_WIDTH and random.random() <= config.NEIGHBOUR_PROBABILITY:
+                add_lanes(intersection, grid[y][x + 1], models.Direction.EAST)
+            if y + 1 < config.GRID_HEIGHT and random.random() <= config.NEIGHBOUR_PROBABILITY:
+                add_lanes(intersection, grid[y + 1][x], models.Direction.NORTH)
+            if x - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
+                add_lanes(intersection, grid[y][x - 1], models.Direction.WEST)
 
     return grid
 
 
-def setup_lanes(intersection):
-    for direction in list(models.Direction):
-        # Skip if there is no road in this direction.
-        if not intersection.neighbours[direction]:
-            continue
+def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roads_to_drive):
+    # Make a random number of vehicles. Save the number of roads the vehicle with the longest journey has to drive.
+    max_roads = 0
 
-        # Determine whether we can make the turn.
-        for turn in list(models.Turning):
-            if intersection.neighbours[direction.turn(turn)]:
-                # Add a lane.
-                lane = models.Lane(intersection)
-                intersection.lanes[direction][turn] = lane
+    for _ in range(random.randint(min_vehicles, max_vehicles)):
+        # Get a random intersection.
+        x = random.randint(0, grid.width - 1)
+        y = random.randint(0, grid.height - 1)
 
-                # Add traffic lights for cross and T-intersections.
-                if intersection.requiresTrafficLights():
-                    lane.trafficLight = models.Light.ON
+        # Determine the number of roads the vehicle has to drive and add the vehicle to the list of the intersection.
+        roads_to_drive = random.randint(min_roads_to_drive, max_roads_to_drive)
+        intersection = grid.intersections[y][x]
+        origin_direction = random.choice([intersection.incoming.index(neighbour) for neighbour in intersection.incoming if neighbour])
 
+        intersection.vehicles[origin_direction].append(models.Vehicle(roads_to_drive, origin_direction))
 
-def get_random_vehicle_state(grid):
-    x = random.randint(0, grid.width - 1)
-    y = random.randint(0, grid.height - 1)
-    possible_directions = [d for d in grid[y][x].neighbours if d is not None]
-    return x, y, possible_directions
+        # If there is a new maximum of roads a vehicle has to drive, save it.
+        if roads_to_drive > max_roads:
+            max_roads = roads_to_drive
 
-
-def setup_vehicles(grid):
-    for vehicle_id in range(random.randint(3, grid.width * grid.height)):
-        x, y, possible_directions = get_random_vehicle_state(grid)
-
-        while grid[y][x] is None or len(possible_directions) < 1:
-            x, y, possible_directions = get_random_vehicle_state(grid)
-
-        grid[y][x].vehicles.append(models.Vehicle(vehicle_id, random.choice(possible_directions)))
+    return max_roads

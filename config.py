@@ -1,6 +1,20 @@
+RANDOM_SEED = 42
+
+# Grid
 GRID_WIDTH = 6
 GRID_HEIGHT = 5
 ROAD_LENGTH = 1  # km
+
+# Intersections
+NEIGHBOUR_PROBABILITY = 1  # The probability of an intersection being connected to a neighbouring one
+DEFAULT_LAST_DIRECTION_GREEN = 0
+
+# Vehicles
+VEHICLE_MIN_ROADS = 2
+VEHICLE_MAX_ROADS = 5
+MIN_VEHICLES = 3
+MAX_VEHICLES = 4
 DEFAULT_DIRECTION = 0
-NEIGHBOUR_PROBABILITY = .6  # The probability of an intersection being connected to a neighbouring one
-RANDOM_SEED = 42
+
+# Run
+MAX_VEHICLES_PER_STEP = 4
