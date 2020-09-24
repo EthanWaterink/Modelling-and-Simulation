@@ -3,7 +3,6 @@ import random
 import matplotlib.pyplot as plt
 
 import setup
-from config import *
 
 
 class Turning(IntEnum):
@@ -67,7 +66,7 @@ class Intersection(object):
     def __str__(self):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
-    def requiresTrafficLights(self):
+    def requires_traffic_lights(self):
         return sum(n is not None for n in self.neighbours) >= 3
 
 
@@ -80,8 +79,11 @@ class Lane(object):
 
 
 class Grid(object):
-    def __init__(self):
-        self.grid = setup.setup_grid(WIDTH, HEIGHT)
+    def __init__(self, width, height, neighbour_probability):
+        self.width = width
+        self.height = height
+
+        self.grid = setup.setup_grid(width, height, neighbour_probability)
         setup.setup_vehicles(self.grid)
 
     def plot_grid(self):
