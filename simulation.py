@@ -1,4 +1,6 @@
 import random
+from matplotlib import pyplot as plt
+from matplotlib import animation
 
 from models import Direction
 
@@ -28,6 +30,45 @@ def move_vehicles(grid, max_vehicles_per_step):
 
 
 def run(grid, max_vehicles_per_step):
-    for step in range(grid.number_of_steps):
+    # Plot the grid which will act as the background
+    fig = grid.plot_grid()
+    # Change the limits of the plot
+    plt.xlim([-0.5, grid.width-0.5])
+    plt.ylim([-0.5, grid.height])
+    # Text for the current time step (centered above the grid)
+    time_text = plt.text(
+        (grid.width-1)/2.0,
+        grid.height-0.5,
+        s='step = 0',
+        ha='center', va='bottom', fontsize=12
+    )
+
+    def animate(i):
+        # Update the time step text (i starts at 0, so do +1)
+        time_text.set_text('step = %d' % (i+1))
+
+        # Move one step forward in time by moving the vehicles
         move_vehicles(grid, max_vehicles_per_step)
-        grid.plot_grid(step)
+
+        # Update the text showing the (new) number of cars at the intersections
+        num_cars = []
+        for row in grid.intersections:
+            for intersection in row:
+                num_cars.append(plt.text(
+                    intersection.x,
+                    intersection.y,
+                    s=str(intersection.num_cars_waiting()),
+                    color="black", backgroundcolor="lightgrey", va="center", ha="center", fontsize=12))
+
+        return num_cars+[time_text]
+
+    # Start the animation
+    anim = animation.FuncAnimation(
+        fig,
+        animate,
+        frames=grid.number_of_steps,
+        interval=1000,
+        blit=True,
+        repeat=False
+    )
+    plt.show()

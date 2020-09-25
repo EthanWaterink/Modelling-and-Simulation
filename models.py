@@ -25,10 +25,7 @@ class Direction(IntEnum):
 
     @staticmethod
     def opposite_direction(direction):
-        if direction < 2:
-            return direction + 2
-        else:
-            return direction - 2
+        return (direction + 2) % len(Direction)
 
     @staticmethod
     def next_direction(direction):
@@ -73,10 +70,13 @@ class Intersection(object):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
     def requires_traffic_lights(self):
-        return sum(n is not None for n in self.incoming) >= 3
+        return sum(1 is not None for _ in self.incoming) >= 3
 
     def set_last_direction_green(self):
         self.last_direction_green = random.choice([i for i in self.outgoing if i is not None])
+
+    def num_cars_waiting(self):
+        return sum([len(vehicles) for vehicles in self.vehicles])
 
 
 class Grid(object):
@@ -87,7 +87,9 @@ class Grid(object):
         self.number_of_steps = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
                                                     config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
 
-    def plot_grid(self, step):
+    # Create a plot of the grid (returns the figure)
+    def plot_grid(self):
+        fig = plt.figure()
         for row in self.intersections:
             for intersection in row:
                 if intersection is None:
@@ -102,10 +104,14 @@ class Grid(object):
                         plt.plot([intersection.x, neighbour.x], [intersection.y, neighbour.y], '-', color='black')
 
                 # Plot number of vehicles
-                plt.text(intersection.x, intersection.y,
-                         str(sum([len(vehicles) for vehicles in intersection.vehicles])), color="red",
-                         backgroundcolor="grey", va="center", ha="center")
+                plt.text(
+                    intersection.x,
+                    intersection.y,
+                    s=str(intersection.num_cars_waiting()),
+                    color="black", backgroundcolor="lightgrey", va="center", ha="center", fontsize=12
+                )
 
-                plt.title("Step " + str(step))
+                # Set the title
+                plt.title("Simulation street grid with traffic lights")
 
-        plt.show()
+        return fig
