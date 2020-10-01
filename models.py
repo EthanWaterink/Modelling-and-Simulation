@@ -3,11 +3,10 @@ import random
 import matplotlib.pyplot as plt
 
 import setup
-from config import *
 
 
 class Turning(IntEnum):
-    """The possible turns a car can take"""
+    """The possible turns a vehicle can take"""
     LEFT = 0
     STRAIGHT = 1
     RIGHT = 2
@@ -20,9 +19,20 @@ class Direction(IntEnum):
     SOUTH = 2
     WEST = 3
 
-    # returns in what direction a car is going after turning
+    # Returns in what direction a vehicle is going after turning.
     def turn(self, turning):
         return (self + 1 + turning) % len(Direction)
+
+    @staticmethod
+    def opposite_direction(direction):
+        return (direction + 2) % len(Direction)
+
+    @staticmethod
+    def next_direction(direction):
+        if direction < 3:
+            return direction + 1
+        else:
+            return 0
 
 
 class Light(Enum):
@@ -30,73 +40,78 @@ class Light(Enum):
     OFF = 1
 
 
-class Car(object):
-    """Car object"""
-    direction: Direction
+class Vehicle(object):
+    """Vehicle object"""
 
-    # All cars have the same constant velocity in km/h.
-    VELOCITY = 50
+    def __init__(self, roads_to_drive, origin_direction):
+        self.roads_to_drive = roads_to_drive
 
-    # Because the road length is constant as well, the time it takes to drive to the other side is constant,
-    # namely time = 3600 * velocity * distance
-    TIME = 3600 * VELOCITY * ROAD_LENGTH
-
-    def __init__(self):
-        # TODO: choose from lanes (not all lanes have all Turnings)
-        self.turning = random.choice(list(Turning))
-        self.destination = None
-        self.direction = DEFAULT_DIRECTION
-
-    def __str__(self):
-        return "Car[" + str(self.VELOCITY) + " km/h, turning " + str(self.direction) + "]"
-
-    def drive(self):
-        print("Driving")
-        # wait TIME seconds
-        print("Arrived at ", self.destination)
+        # TODO: This object is not used yet since the origin direction of each vehicle can also be retrieved from the
+        #  intersection the vehicle currently stands. If it will be used nowhere, this object can be removed.
+        self.origin_direction = origin_direction
 
 
 class Intersection(object):
     """Intersection object"""
 
-    def __init__(self, h, w):
+    def __init__(self, y, x, default_last_direction_green):
         # An intersection has a maximum of 4 neighbours (one for each direction).
-        self.neighbours = [None, None, None, None]
+        self.incoming = [None, None, None, None]
+        self.outgoing = [None, None, None, None]
 
-        # In every direction there is a maximum of 3 lanes, depending on the orientation and neighbours of the
-        # intersection.
-        self.lanes = [[None, None, None], [None, None, None], [None, None, None], [None, None, None]]
+        # Position [y,x] on the grid
+        self.y = y
+        self.x = x
 
-        # Position [h,w] on the grid
-        self.h = h
-        self.w = w
+        self.vehicles = [[], [], [], []]
+        self.last_direction_green: Direction = default_last_direction_green
 
     def __str__(self):
-        return "Intersection[" + str(self.h) + "," + str(self.w) + "]"
+        return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
-    def requiresTrafficLights(self):
-        return sum(n is not None for n in self.neighbours) >= 3
+    def requires_traffic_lights(self):
+        return sum(1 is not None for _ in self.incoming) >= 3
 
+    def set_last_direction_green(self):
+        self.last_direction_green = random.choice([i for i in self.outgoing if i is not None])
 
-class Lane(object):
-    """Lane object"""
-
-    def __init__(self, intersection):
-        self.intersection = intersection
-        self.cars = []  # Cars waiting in front of red light (could possibly be a counter?).
+    def num_cars_waiting(self):
+        return sum([len(vehicles) for vehicles in self.vehicles])
 
 
 class Grid(object):
-    def __init__(self):
-        self.grid = setup.setup_grid(WIDTH, HEIGHT)
+    def __init__(self, config):
+        self.width = config.GRID_WIDTH
+        self.height = config.GRID_HEIGHT
+        self.intersections = setup.setup_intersections(config)
+        self.number_of_steps = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
+                                                    config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
 
+    # Create a plot of the grid (returns the figure)
     def plot_grid(self):
-        for row in self.grid:
+        fig = plt.figure()
+        for row in self.intersections:
             for intersection in row:
-                plt.plot(intersection.w, intersection.h, 'o', color='blue')
-                for i in range(0, 4):
-                    neighbour = intersection.neighbours[i]
-                    if neighbour is not None:
-                        plt.plot([intersection.w, neighbour.w], [intersection.h, neighbour.h], '-', color='black')
+                if intersection is None:
+                    continue
 
-        plt.show()
+                # Plot lanes
+                for i in range(0, 4):
+                    neighbour = intersection.outgoing[i]
+                    if neighbour is not None:
+                        plt.arrow(intersection.x, intersection.y, (neighbour.x - intersection.x) / 2,
+                                  (neighbour.y - intersection.y) / 2, head_width=.2, head_length=.2, color='grey')
+                        plt.plot([intersection.x, neighbour.x], [intersection.y, neighbour.y], '-', color='black')
+
+                # Plot number of vehicles
+                plt.text(
+                    intersection.x,
+                    intersection.y,
+                    s=str(intersection.num_cars_waiting()),
+                    color="black", backgroundcolor="lightgrey", va="center", ha="center", fontsize=12
+                )
+
+                # Set the title
+                plt.title("Simulation street grid with traffic lights")
+
+        return fig
