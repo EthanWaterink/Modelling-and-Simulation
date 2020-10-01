@@ -56,4 +56,4 @@ def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roa
         if roads_to_drive > max_roads:
             max_roads = roads_to_drive
 
-    return max_roads, vehicles
+    return vehicles

@@ -1,5 +1,4 @@
-import random
-
+import numpy as np
 from matplotlib import animation
 from matplotlib import pyplot as plt
 
@@ -21,7 +20,15 @@ def move_vehicles(grid, max_vehicles_per_step):
             intersection.current_direction_green = green_direction
 
     # Now all green lights are updated, loop over all vehicles and update their states.
+    finished_cars = 0
+
     for vehicle in grid.vehicles:
+        if vehicle.roads_to_drive == 0:
+            continue
+
+        # Update the time the vehicle is driving.
+        vehicle.steps_driving += 1
+
         current_intersection = vehicle.current_location
 
         # If the traffic light the vehicle is waiting in front of is not green, nothing will change for this vehicle.
@@ -45,6 +52,17 @@ def move_vehicles(grid, max_vehicles_per_step):
         vehicle.current_location = next_location
         vehicle.origin_direction = Direction.opposite_direction(direction)
 
+        # Update the number of roads the vehicle still has to drive.
+        vehicle.roads_to_drive -= 1
+        if vehicle.roads_to_drive == 0:
+            finished_cars += 1
+
+    return finished_cars
+
+
+def get_statistics(finished_cars):
+    print("Mean number of steps to destination:", round(np.mean(finished_cars), 2))
+
 
 def run(grid, max_vehicles_per_step):
     # Plot the grid which will act as the background
@@ -60,12 +78,16 @@ def run(grid, max_vehicles_per_step):
         ha='center', va='bottom', fontsize=12
     )
 
+    finished_cars = []
+
+    # TODO: Stop the animation when the 'roads_to_drive' of all vehicles are 0, not after a fixed number of steps.
     def animate(i):
         # Update the time step text (i starts at 0, so do +1)
         time_text.set_text('step = %d' % (i + 1))
 
         # Move one step forward in time by moving the vehicles
-        move_vehicles(grid, max_vehicles_per_step)
+        number_of_finished_cars = move_vehicles(grid, max_vehicles_per_step)
+        finished_cars.extend(np.repeat(i, number_of_finished_cars))
 
         # Update the text showing the (new) number of cars at the intersections
         num_cars = []
@@ -89,3 +111,5 @@ def run(grid, max_vehicles_per_step):
         repeat=False
     )
     plt.show()
+
+    get_statistics(finished_cars)

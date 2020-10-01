@@ -72,6 +72,7 @@ class Vehicle(object):
         self.roads_to_drive = roads_to_drive
         self.origin_direction = origin_direction
         self.current_location = location
+        self.steps_driving = 0
 
     def get_next_direction(self):
         possible_directions = [self.current_location.outgoing.index(lane) for lane in self.current_location.outgoing if lane]
@@ -85,12 +86,15 @@ class Vehicle(object):
 
 
 class Grid(object):
+    # TODO: remove this variable after the simulation can stop when there are no vehicles left.
+    number_of_steps = 25
+
     def __init__(self, config):
         self.width = config.GRID_WIDTH
         self.height = config.GRID_HEIGHT
         self.intersections = setup.setup_intersections(config)
-        self.number_of_steps, self.vehicles = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
-                                                                   config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
+        self.vehicles = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
+                                             config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
 
     # Create a plot of the grid (returns the figure)
     def plot_grid(self):
