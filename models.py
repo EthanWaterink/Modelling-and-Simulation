@@ -1,3 +1,4 @@
+import random
 from enum import Enum, IntEnum
 import matplotlib.pyplot as plt
 
@@ -71,6 +72,16 @@ class Vehicle(object):
         self.roads_to_drive = roads_to_drive
         self.origin_direction = origin_direction
         self.current_location = location
+
+    def get_next_direction(self):
+        possible_directions = [self.current_location.outgoing.index(lane) for lane in self.current_location.outgoing if lane]
+
+        # If there are more possible directions than one, don't choose the direction the vehicle came from.
+        if len(possible_directions) > 1:
+            possible_directions.remove(self.origin_direction)
+
+        return random.choice(
+            [self.current_location.outgoing.index(lane) for lane in self.current_location.outgoing if lane])
 
 
 class Grid(object):

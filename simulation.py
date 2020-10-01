@@ -29,13 +29,15 @@ def move_vehicles(grid, max_vehicles_per_step):
             continue
 
         # Choose the next direction for the vehicle.
-        direction = random.choice(
-            [current_intersection.outgoing.index(lane) for lane in current_intersection.outgoing if lane])
+        direction = vehicle.get_next_direction()
         next_location = current_intersection.outgoing[direction]
 
+        # If the current vehicle is too far to the back of the queue, the vehicle will not move.
+        if current_intersection.vehicles[vehicle.origin_direction].index(vehicle) >= max_vehicles_per_step:
+            continue
+
         # Remove the vehicle from the current intersection and add it to the next.
-        # TODO: add max number of vehicles which can pass in one step.
-        current_intersection.vehicles[current_intersection.current_direction_green].pop()
+        current_intersection.vehicles[current_intersection.current_direction_green].remove(vehicle)
         next_location.vehicles[Direction.opposite_direction(direction)].append(vehicle)
 
         # Update the location in the vehicle model.
