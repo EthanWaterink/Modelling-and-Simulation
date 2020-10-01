@@ -1,5 +1,6 @@
-import models
 import random
+
+import models
 
 
 def add_lanes(origin_intersection, goal_intersection, direction):
@@ -34,6 +35,7 @@ def setup_intersections(config):
 def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roads_to_drive):
     # Make a random number of vehicles. Save the number of roads the vehicle with the longest journey has to drive.
     max_roads = 0
+    vehicles = []
 
     for _ in range(random.randint(min_vehicles, max_vehicles)):
         # Get a random intersection.
@@ -43,12 +45,15 @@ def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roa
         # Determine the number of roads the vehicle has to drive and add the vehicle to the list of the intersection.
         roads_to_drive = random.randint(min_roads_to_drive, max_roads_to_drive)
         intersection = grid.intersections[y][x]
-        origin_direction = random.choice([intersection.incoming.index(neighbour) for neighbour in intersection.incoming if neighbour])
+        origin_direction = random.choice(
+            [intersection.incoming.index(neighbour) for neighbour in intersection.incoming if neighbour])
 
-        intersection.vehicles[origin_direction].append(models.Vehicle(roads_to_drive, origin_direction))
+        vehicle = models.Vehicle(roads_to_drive, origin_direction, intersection)
+        intersection.vehicles[origin_direction].append(vehicle)
+        vehicles.append(vehicle)
 
         # If there is a new maximum of roads a vehicle has to drive, save it.
         if roads_to_drive > max_roads:
             max_roads = roads_to_drive
 
-    return max_roads
+    return max_roads, vehicles

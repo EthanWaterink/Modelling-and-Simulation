@@ -1,5 +1,4 @@
 from enum import Enum, IntEnum
-import random
 import matplotlib.pyplot as plt
 
 import setup
@@ -40,21 +39,9 @@ class Light(Enum):
     OFF = 1
 
 
-class Vehicle(object):
-    """Vehicle object"""
-
-    def __init__(self, roads_to_drive, origin_direction):
-        self.roads_to_drive = roads_to_drive
-
-        # TODO: This object is not used yet since the origin direction of each vehicle can also be retrieved from the
-        #  intersection the vehicle currently stands. If it will be used nowhere, this object can be removed.
-        self.origin_direction = origin_direction
-
-
 class Intersection(object):
     """Intersection object"""
-
-    def __init__(self, y, x, default_last_direction_green):
+    def __init__(self, y, x, default_direction_green: Direction):
         # An intersection has a maximum of 4 neighbours (one for each direction).
         self.incoming = [None, None, None, None]
         self.outgoing = [None, None, None, None]
@@ -64,19 +51,26 @@ class Intersection(object):
         self.x = x
 
         self.vehicles = [[], [], [], []]
-        self.last_direction_green: Direction = default_last_direction_green
+        self.current_direction_green = default_direction_green
 
     def __str__(self):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
     def requires_traffic_lights(self):
-        return sum(1 is not None for _ in self.incoming) >= 3
-
-    def set_last_direction_green(self):
-        self.last_direction_green = random.choice([i for i in self.outgoing if i is not None])
+        return sum([1 for lane in self.incoming if lane]) >= 3
 
     def num_cars_waiting(self):
         return sum([len(vehicles) for vehicles in self.vehicles])
+
+
+class Vehicle(object):
+    """Vehicle object"""
+    last_location: Intersection
+
+    def __init__(self, roads_to_drive, origin_direction, location: Intersection):
+        self.roads_to_drive = roads_to_drive
+        self.origin_direction = origin_direction
+        self.current_location = location
 
 
 class Grid(object):
@@ -84,8 +78,8 @@ class Grid(object):
         self.width = config.GRID_WIDTH
         self.height = config.GRID_HEIGHT
         self.intersections = setup.setup_intersections(config)
-        self.number_of_steps = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
-                                                    config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
+        self.number_of_steps, self.vehicles = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
+                                                                   config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
 
     # Create a plot of the grid (returns the figure)
     def plot_grid(self):
