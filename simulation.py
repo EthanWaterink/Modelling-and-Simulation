@@ -1,6 +1,7 @@
 import numpy as np
-from matplotlib import animation
 from matplotlib import pyplot as plt
+from matplotlib import animation
+import copy
 
 from models import Direction
 
@@ -64,34 +65,28 @@ def get_statistics(finished_cars):
     print("Mean number of steps to destination:", round(np.mean(finished_cars), 2))
 
 
-def run(grid, max_vehicles_per_step):
+# Animation of the simulation (for each step)
+def simulation_animation(grid_states):
     # Plot the grid which will act as the background
-    fig = grid.plot_grid()
+    fig = grid_states[0].plot_grid()
     # Change the limits of the plot
-    plt.xlim([-0.5, grid.width - 0.5])
-    plt.ylim([-0.5, grid.height])
+    plt.xlim([-0.5, grid_states[0].width - 0.5])
+    plt.ylim([-0.5, grid_states[0].height])
     # Text for the current time step (centered above the grid)
     time_text = plt.text(
-        (grid.width - 1) / 2.0,
-        grid.height - 0.5,
+        (grid_states[0].width - 1) / 2.0,
+        grid_states[0].height - 0.5,
         s='step = 0',
         ha='center', va='bottom', fontsize=12
     )
 
-    finished_cars = []
-
-    # TODO: Stop the animation when the 'roads_to_drive' of all vehicles are 0, not after a fixed number of steps.
     def animate(i):
         # Update the time step text (i starts at 0, so do +1)
         time_text.set_text('step = %d' % (i + 1))
 
-        # Move one step forward in time by moving the vehicles
-        number_of_finished_cars = move_vehicles(grid, max_vehicles_per_step)
-        finished_cars.extend(np.repeat(i, number_of_finished_cars))
-
-        # Update the text showing the (new) number of cars at the intersections
+        # Update the text showing the (new) number of cars at the intersections at the current time step
         num_cars = []
-        for row in grid.intersections:
+        for row in grid_states[i].intersections:
             for intersection in row:
                 num_cars.append(plt.text(
                     intersection.x,
@@ -105,11 +100,29 @@ def run(grid, max_vehicles_per_step):
     anim = animation.FuncAnimation(
         fig,
         animate,
-        frames=grid.number_of_steps,
-        interval=1000,
+        frames=len(grid_states),
+        interval=500,
         blit=True,
         repeat=False
     )
-    plt.show()
 
+    # Save the animation in a GIF file
+    anim.save('animation.gif')
+
+
+# Run the simulation
+def run(grid, max_vehicles_per_step):
+    finished_cars = 0
+    # Store the grid states, starting with the initial grid
+    grid_states = [copy.deepcopy(grid)]
+    # Loop until all cars are finished
+    while finished_cars < len(grid.vehicles):
+        # Move one step forward in time by moving the vehicles
+        number_of_finished_cars = move_vehicles(grid, max_vehicles_per_step)
+        finished_cars += number_of_finished_cars
+
+        # Store the current state of the grid
+        grid_states.append(copy.deepcopy(grid))
+
+    simulation_animation(grid_states)
     get_statistics(finished_cars)
