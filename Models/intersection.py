@@ -18,8 +18,8 @@ class Intersection(object):
     def __str__(self):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
-    def requires_traffic_lights(self):
-        return sum([1 for lane in self.incoming if lane]) >= 3
+    def has_traffic_lights(self):
+        return sum([1 for lane in self.incoming if lane]) > 1
 
     def num_vehicles_waiting(self):
         return sum([len(vehicles) for vehicles in self.vehicles])
