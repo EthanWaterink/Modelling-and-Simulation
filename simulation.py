@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 import copy
 
-from models import Direction
+from Models.direction import Direction
 
 
 def determine_green_direction(intersection):

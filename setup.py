@@ -1,16 +1,18 @@
 import random
 
-import models
+from Models.direction import Direction
+from Models.intersection import Intersection
+from Models.vehicle import Vehicle
 
 
 def add_lanes(origin_intersection, goal_intersection, direction):
     origin_intersection.outgoing[direction] = goal_intersection
-    goal_intersection.incoming[models.Direction.opposite_direction(direction)] = origin_intersection
+    goal_intersection.incoming[Direction.opposite_direction(direction)] = origin_intersection
 
 
 def setup_intersections(config):
     # Initialize the grid and all intersections.
-    grid = [[models.Intersection(y, x, config.DEFAULT_LAST_DIRECTION_GREEN) for x in range(config.GRID_WIDTH)] for y in
+    grid = [[Intersection(y, x, config.DEFAULT_LAST_DIRECTION_GREEN) for x in range(config.GRID_WIDTH)] for y in
             range(config.GRID_HEIGHT)]
 
     # Setup neighbour relations.
@@ -21,13 +23,13 @@ def setup_intersections(config):
 
             # Set a neighbour based on a probability.
             if y - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y - 1][x], models.Direction.SOUTH)
+                add_lanes(intersection, grid[y - 1][x], Direction.SOUTH)
             if x + 1 < config.GRID_WIDTH and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y][x + 1], models.Direction.EAST)
+                add_lanes(intersection, grid[y][x + 1], Direction.EAST)
             if y + 1 < config.GRID_HEIGHT and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y + 1][x], models.Direction.NORTH)
+                add_lanes(intersection, grid[y + 1][x], Direction.NORTH)
             if x - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y][x - 1], models.Direction.WEST)
+                add_lanes(intersection, grid[y][x - 1], Direction.WEST)
 
     return grid
 
@@ -48,7 +50,7 @@ def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roa
         origin_direction = random.choice(
             [intersection.incoming.index(neighbour) for neighbour in intersection.incoming if neighbour])
 
-        vehicle = models.Vehicle(roads_to_drive, origin_direction, intersection)
+        vehicle = Vehicle(roads_to_drive, origin_direction, intersection)
         intersection.vehicles[origin_direction].append(vehicle)
         vehicles.append(vehicle)
 

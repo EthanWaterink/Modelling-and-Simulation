@@ -2,7 +2,7 @@ import random
 
 import config
 import simulation
-from models import Grid
+from Models.grid import Grid
 
 
 def main():
