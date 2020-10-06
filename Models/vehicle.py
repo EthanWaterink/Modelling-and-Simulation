@@ -11,6 +11,7 @@ class Vehicle(object):
         self.roads_to_drive = roads_to_drive
         self.origin_direction = origin_direction
         self.current_location = location
+        self.next_direction = self.get_next_direction()
         self.steps_driving = 0
 
     def get_next_direction(self):
@@ -21,5 +22,4 @@ class Vehicle(object):
         if len(possible_directions) > 1:
             possible_directions.remove(self.origin_direction)
 
-        return random.choice(
-            [self.current_location.outgoing.index(lane) for lane in self.current_location.outgoing if lane])
+        return random.choice(possible_directions)

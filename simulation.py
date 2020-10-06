@@ -21,7 +21,7 @@ def move_vehicles(grid, max_vehicles_per_step):
             intersection.current_direction_green = green_direction
 
     # Now all green lights are updated, loop over all vehicles and update their states.
-    finished_cars = 0
+    finished_vehicles = 0
 
     for vehicle in grid.vehicles:
         if vehicle.roads_to_drive == 0:
@@ -37,8 +37,7 @@ def move_vehicles(grid, max_vehicles_per_step):
             continue
 
         # Choose the next direction for the vehicle.
-        direction = vehicle.get_next_direction()
-        next_location = current_intersection.outgoing[direction]
+        next_location = current_intersection.outgoing[vehicle.next_direction]
 
         # If the current vehicle is too far to the back of the queue, the vehicle will not move.
         if current_intersection.vehicles[vehicle.origin_direction].index(vehicle) >= max_vehicles_per_step:
@@ -46,23 +45,24 @@ def move_vehicles(grid, max_vehicles_per_step):
 
         # Remove the vehicle from the current intersection and add it to the next.
         current_intersection.vehicles[current_intersection.current_direction_green].remove(vehicle)
-        next_location.vehicles[Direction.opposite_direction(direction)].append(vehicle)
+        next_location.vehicles[Direction.opposite_direction(vehicle.next_direction)].append(vehicle)
 
         # Update the location in the vehicle model.
         vehicle.last_location = vehicle.current_location
         vehicle.current_location = next_location
-        vehicle.origin_direction = Direction.opposite_direction(direction)
+        vehicle.origin_direction = Direction.opposite_direction(vehicle.next_direction)
+        vehicle.next_direction = vehicle.get_next_direction()
 
         # Update the number of roads the vehicle still has to drive.
         vehicle.roads_to_drive -= 1
         if vehicle.roads_to_drive == 0:
-            finished_cars += 1
+            finished_vehicles += 1
 
-    return finished_cars
+    return finished_vehicles
 
 
-def get_statistics(finished_cars):
-    print("Mean number of steps to destination:", round(np.mean(finished_cars), 2))
+def get_statistics(finished_vehicles):
+    print("Mean number of steps to destination:", round(np.mean(finished_vehicles), 2))
 
 
 # Animation of the simulation (for each step)
@@ -84,17 +84,17 @@ def simulation_animation(grid_states):
         # Update the time step text (i starts at 0, so do +1)
         time_text.set_text('step = %d' % (i + 1))
 
-        # Update the text showing the (new) number of cars at the intersections at the current time step
-        num_cars = []
+        # Update the text showing the (new) number of vehicles at the intersections at the current time step
+        num_vehicles = []
         for row in grid_states[i].intersections:
             for intersection in row:
-                num_cars.append(plt.text(
+                num_vehicles.append(plt.text(
                     intersection.x,
                     intersection.y,
-                    s=str(intersection.num_cars_waiting()),
+                    s=str(intersection.num_vehicles_waiting()),
                     color="black", backgroundcolor="lightgrey", va="center", ha="center", fontsize=12))
 
-        return num_cars + [time_text]
+        return num_vehicles + [time_text]
 
     # Start the animation
     anim = animation.FuncAnimation(
@@ -112,17 +112,24 @@ def simulation_animation(grid_states):
 
 # Run the simulation
 def run(grid, max_vehicles_per_step):
-    finished_cars = 0
+    # Keep track of the steps in which a vehicle finished.
+    finished_vehicles = []
+
     # Store the grid states, starting with the initial grid
     grid_states = [copy.deepcopy(grid)]
-    # Loop until all cars are finished
-    while finished_cars < len(grid.vehicles):
-        # Move one step forward in time by moving the vehicles
-        number_of_finished_cars = move_vehicles(grid, max_vehicles_per_step)
-        finished_cars += number_of_finished_cars
+
+    # Loop until all vehicles are finished
+    time_stamp = 0
+    while len(finished_vehicles) < len(grid.vehicles):
+        time_stamp += 1
+
+        # Move one step forward in time by moving the vehicles. If n vehicles finished this step, add n times the
+        # current time stamp to finished_vehicles.
+        if (finished_vehicles_in_step := move_vehicles(grid, max_vehicles_per_step)) > 0:
+            finished_vehicles.extend(finished_vehicles_in_step * [time_stamp])
 
         # Store the current state of the grid
         grid_states.append(copy.deepcopy(grid))
 
     simulation_animation(grid_states)
-    get_statistics(finished_cars)
+    get_statistics(finished_vehicles)

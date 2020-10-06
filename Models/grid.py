@@ -31,7 +31,7 @@ class Grid(object):
                 plt.text(
                     intersection.x,
                     intersection.y,
-                    s=str(intersection.num_cars_waiting()),
+                    s=str(intersection.num_vehicles_waiting()),
                     color="black", backgroundcolor="lightgrey", va="center", ha="center", fontsize=12
                 )
 

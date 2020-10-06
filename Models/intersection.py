@@ -21,7 +21,7 @@ class Intersection(object):
     def requires_traffic_lights(self):
         return sum([1 for lane in self.incoming if lane]) >= 3
 
-    def num_cars_waiting(self):
+    def num_vehicles_waiting(self):
         return sum([len(vehicles) for vehicles in self.vehicles])
 
 
