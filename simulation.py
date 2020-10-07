@@ -4,17 +4,24 @@ import numpy as np
 from matplotlib import animation
 from matplotlib import pyplot as plt
 
-from Models.direction import Direction
+from Models.direction import get_next_direction
+from Models.light import Light
 
 
-def determine_green_direction(intersection):
-    if not intersection.has_traffic_lights():
+def set_green_direction(intersection):
+    if not intersection.has_traffic_lights:
         return None
 
-    green_direction = Direction.next_direction(intersection.current_direction_green)
-    while intersection.outgoing[green_direction] is None:
-        green_direction = Direction.next_direction(green_direction)
-    return green_direction
+    green_direction = get_next_direction(intersection.current_direction_green)
+    intersection.current_direction_green = green_direction
+
+    for incoming_direction in range(4):
+        for lane_number in range(3):
+            if intersection.incoming[incoming_direction][lane_number] is None:
+                continue
+
+            intersection.incoming[incoming_direction][
+                lane_number].traffic_light = Light.GREEN if incoming_direction == green_direction else Light.RED
 
 
 def move_vehicles(grid, max_vehicles_per_step):
@@ -40,7 +47,7 @@ def step(grid, max_vehicles_per_step):
     # Loop over all intersections and determine for each intersection the next green light.
     for row in grid.intersections:
         for intersection in row:
-            intersection.current_direction_green = determine_green_direction(intersection)
+            set_green_direction(intersection)
 
     # Now all green lights are updated, loop over all vehicles and update their states.
     return move_vehicles(grid, max_vehicles_per_step)
@@ -119,7 +126,7 @@ def run(grid, max_vehicles_per_step):
             finished_vehicles.extend(finished_vehicles_in_step * [time_stamp])
 
         # Store the current state of the grid
-        grid_states.append(copy.deepcopy(grid))
+        # grid_states.append(copy.deepcopy(grid))
 
     simulation_animation(grid_states)
     get_statistics(finished_vehicles, grid.vehicles)

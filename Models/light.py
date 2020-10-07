@@ -2,5 +2,5 @@ from enum import Enum
 
 
 class Light(Enum):
-    ON = 0
-    OFF = 1
+    RED = 0
+    GREEN = 1
