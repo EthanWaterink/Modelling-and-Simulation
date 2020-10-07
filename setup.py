@@ -5,9 +5,16 @@ from Models.intersection import Intersection
 from Models.vehicle import Vehicle
 
 
-def add_lanes(origin_intersection, goal_intersection, direction):
+def add_incoming_lanes(grid, width, height):
+    for y in range(height):
+        for x in range(width):
+            for outgoing_direction in range(4):
+                if (goal_intersection := grid[y][x].outgoing[outgoing_direction]) is not None:
+                    goal_intersection.add_incoming_lane(get_opposite_direction(outgoing_direction))
+
+
+def add_outgoing_lanes(origin_intersection, goal_intersection, direction):
     origin_intersection.add_outgoing_lane(goal_intersection, direction)
-    goal_intersection.add_incoming_lane(get_opposite_direction(direction))
 
 
 def add_traffic_lights(grid, width, height):
@@ -35,14 +42,15 @@ def setup_intersections(config):
 
             # Set a neighbour based on a probability.
             if y - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y - 1][x], Direction.SOUTH)
+                add_outgoing_lanes(intersection, grid[y - 1][x], Direction.SOUTH)
             if x + 1 < config.GRID_WIDTH and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y][x + 1], Direction.EAST)
+                add_outgoing_lanes(intersection, grid[y][x + 1], Direction.EAST)
             if y + 1 < config.GRID_HEIGHT and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y + 1][x], Direction.NORTH)
+                add_outgoing_lanes(intersection, grid[y + 1][x], Direction.NORTH)
             if x - 1 >= 0 and random.random() <= config.NEIGHBOUR_PROBABILITY:
-                add_lanes(intersection, grid[y][x - 1], Direction.WEST)
+                add_outgoing_lanes(intersection, grid[y][x - 1], Direction.WEST)
 
+    add_incoming_lanes(grid, config.GRID_WIDTH, config.GRID_HEIGHT)
     add_traffic_lights(grid, config.GRID_WIDTH, config.GRID_HEIGHT)
 
     return grid

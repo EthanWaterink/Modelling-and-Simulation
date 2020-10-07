@@ -12,7 +12,7 @@ class Intersection(object):
 
     def __init__(self, y, x, default_direction_green: Direction):
         # An intersection has a maximum of 4 connected neighbours (one for each direction).
-        self.incoming = 4 * [(3 * [None])]
+        self.incoming = [[None, None, None], [None, None, None], [None, None, None], [None, None, None]]
         self.outgoing = 4 * [None]
 
         # Position [y,x] on the grid
@@ -26,7 +26,8 @@ class Intersection(object):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
 
     def num_vehicles_waiting(self):
-        return sum([len(waiting_queue.queue) for direction in self.incoming for waiting_queue in direction])
+        return sum(
+            [len(waiting_queue.queue) for direction in self.incoming for waiting_queue in direction if waiting_queue])
 
     def add_outgoing_lane(self, goal_intersection, direction):
         # Add the outgoing lane to the list.

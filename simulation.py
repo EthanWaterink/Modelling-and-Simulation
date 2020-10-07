@@ -13,15 +13,15 @@ def set_green_direction(intersection):
         return None
 
     green_direction = get_next_direction(intersection.current_direction_green)
-    for incoming_direction in intersection.incoming:
-        if incoming_direction is None or incoming_direction:
-            continue
+    intersection.current_direction_green = green_direction
 
-        for waiting_queue in incoming_direction:
-            if waiting_queue is None:
+    for incoming_direction in range(4):
+        for lane_number in range(3):
+            if intersection.incoming[incoming_direction][lane_number] is None:
                 continue
 
-            waiting_queue.traffic_light = Light.GREEN if incoming_direction == green_direction else Light.RED
+            intersection.incoming[incoming_direction][
+                lane_number].traffic_light = Light.GREEN if incoming_direction == green_direction else Light.RED
 
 
 def move_vehicles(grid, max_vehicles_per_step):
@@ -126,7 +126,7 @@ def run(grid, max_vehicles_per_step):
             finished_vehicles.extend(finished_vehicles_in_step * [time_stamp])
 
         # Store the current state of the grid
-        grid_states.append(copy.deepcopy(grid))
+        # grid_states.append(copy.deepcopy(grid))
 
     simulation_animation(grid_states)
     get_statistics(finished_vehicles, grid.vehicles)
