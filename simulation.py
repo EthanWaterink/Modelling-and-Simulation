@@ -20,8 +20,8 @@ def set_green_direction(intersection):
             if intersection.incoming[incoming_direction][lane_number] is None:
                 continue
 
-            intersection.incoming[incoming_direction][
-                lane_number].traffic_light = Light.GREEN if incoming_direction == green_direction else Light.RED
+            new_state = Light.GREEN if incoming_direction == green_direction else Light.RED
+            intersection.incoming[incoming_direction][lane_number].set_traffic_light_state(new_state)
 
 
 def move_vehicles(grid, max_vehicles_per_step):
@@ -43,11 +43,10 @@ def move_vehicles(grid, max_vehicles_per_step):
     return finished_vehicles
 
 
-def step(grid, max_vehicles_per_step):
-    # Loop over all intersections and determine for each intersection the next green light.
-    for row in grid.intersections:
-        for intersection in row:
-            set_green_direction(intersection)
+def step(grid, traffic_light_model, max_vehicles_per_step):
+    # Set the states of the traffic lights at all intersections using the traffic light model.
+    for intersection in [intersection for row in grid.intersections for intersection in row]:
+        traffic_light_model(intersection)
 
     # Now all green lights are updated, loop over all vehicles and update their states.
     return move_vehicles(grid, max_vehicles_per_step)
@@ -108,7 +107,7 @@ def simulation_animation(grid_states):
 
 
 # Run the simulation
-def run(grid, max_vehicles_per_step):
+def run(grid, traffic_light_model, max_vehicles_per_step):
     # Keep track of the steps in which a vehicle finished.
     finished_vehicles = []
 
@@ -122,7 +121,7 @@ def run(grid, max_vehicles_per_step):
 
         # Move one step forward in time by moving the vehicles. If n vehicles finished this step, add n times the
         # current time stamp to finished_vehicles.
-        if (finished_vehicles_in_step := step(grid, max_vehicles_per_step)) > 0:
+        if (finished_vehicles_in_step := step(grid, traffic_light_model, max_vehicles_per_step)) > 0:
             finished_vehicles.extend(finished_vehicles_in_step * [time_stamp])
 
         # Store the current state of the grid

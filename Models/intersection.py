@@ -20,7 +20,9 @@ class Intersection(object):
         self.x = x
 
         self.has_traffic_lights = False
-        self.current_direction_green = default_direction_green
+
+        # Used for the Clock Model.
+        self.current_direction_green = None
 
     def __str__(self):
         return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
@@ -55,10 +57,6 @@ class Intersection(object):
             for lane_number in range(3):
                 if (waiting_queue := self.incoming[incoming_direction][lane_number]) is not None:
                     waiting_queue.has_traffic_light = True
-
-                    # Turn the traffic lights from one direction to green.
-                    if incoming_direction == self.current_direction_green:
-                        waiting_queue.traffic_light = Light.GREEN
 
     def get_random_waiting_queue(self):
         possible_waiting_queues = []

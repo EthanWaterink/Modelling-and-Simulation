@@ -8,3 +8,7 @@ class WaitingQueue(object):
         self.queue = []
         self.has_traffic_light = False
         self.traffic_light = Light.RED
+
+    def set_traffic_light_state(self, state: Light):
+        if self.has_traffic_light:
+            self.traffic_light = state
