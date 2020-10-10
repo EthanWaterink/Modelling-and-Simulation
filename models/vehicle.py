@@ -1,9 +1,9 @@
 import random
 
-from Models.direction import Direction, get_opposite_direction, get_lane_number
-from Models.intersection import Intersection
-from Models.light import Light
-from Models.waiting_queue import WaitingQueue
+from models.direction import Direction, get_opposite_direction, get_lane_number
+from models.intersection import Intersection
+from models.light import Light
+from models.waiting_queue import WaitingQueue
 
 
 class Vehicle(object):

@@ -130,3 +130,7 @@ dmypy.json
 
 # IDE
 .idea
+
+# Project
+results/
+animation.gif/

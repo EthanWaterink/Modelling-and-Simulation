@@ -1,6 +1,6 @@
 from queue import Queue
 
-from Models.light import Light
+from models.light import Light
 
 
 class WaitingQueue(object):

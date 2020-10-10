@@ -1,8 +1,8 @@
 import random
 
-from Models.direction import get_next_direction
-from Models.intersection import Intersection
-from Models.light import Light
+from models.direction import get_next_direction
+from models.intersection import Intersection
+from models.light import Light
 
 
 def get_traffic_light_models():

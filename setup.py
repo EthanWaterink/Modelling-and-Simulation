@@ -1,8 +1,8 @@
 import random
 
-from Models.direction import Direction, get_opposite_direction
-from Models.intersection import Intersection
-from Models.vehicle import Vehicle
+from models.direction import Direction, get_opposite_direction
+from models.intersection import Intersection
+from models.vehicle import Vehicle
 
 
 def add_incoming_lanes(grid, width, height):

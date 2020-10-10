@@ -4,8 +4,9 @@ import numpy as np
 from matplotlib import animation
 from matplotlib import pyplot as plt
 
-from Models.direction import get_next_direction
-from Models.light import Light
+from models.direction import get_next_direction
+from models.light import Light
+from services import file_service
 
 
 def set_green_direction(intersection):
@@ -52,15 +53,19 @@ def step(grid, traffic_light_model, max_vehicles_per_step):
     return move_vehicles(grid, max_vehicles_per_step)
 
 
-def get_statistics(finished_vehicles, vehicles):
-    print("Mean number of steps to destination:", round(np.mean(finished_vehicles), 2))
-    print("Mean number of encountered traffic lights:",
-          round(np.mean([v.number_of_encountered_traffic_lights for v in vehicles])))
-    print("Simulation score:", np.mean([v.waiting_steps / v.number_of_encountered_traffic_lights for v in vehicles]))
+def save_results(finished_vehicles, vehicles, results_path, traffic_light_model):
+    results = {
+        'model': traffic_light_model,
+        'mean_number_of_steps': np.mean(finished_vehicles),
+        'mean_number_of_traffic_lights': np.mean([v.number_of_encountered_traffic_lights for v in vehicles]),
+        'simulation_score': np.mean([v.waiting_steps / v.number_of_encountered_traffic_lights for v in vehicles])
+    }
+
+    file_service.write_results_to_file(results_path + '/results.csv', results)
 
 
 # Animation of the simulation (for each step)
-def simulation_animation(grid_states):
+def simulation_animation(grid_states, results_path):
     # Plot the grid which will act as the background
     fig = grid_states[0].plot_grid()
     # Change the limits of the plot
@@ -103,16 +108,16 @@ def simulation_animation(grid_states):
     )
 
     # Save the animation in a GIF file
-    anim.save('animation.gif')
+    anim.save(results_path + '/animation.gif')
 
 
 # Run the simulation
-def run(grid, traffic_light_model, max_vehicles_per_step):
+def run(grid, traffic_light_model, max_vehicles_per_step, results_path):
     # Keep track of the steps in which a vehicle finished.
     finished_vehicles = []
 
     # Store the grid states, starting with the initial grid
-    grid_states = [copy.deepcopy(grid)]
+    # grid_states = [copy.deepcopy(grid)]
 
     # Loop until all vehicles are finished
     time_stamp = 0
@@ -127,5 +132,5 @@ def run(grid, traffic_light_model, max_vehicles_per_step):
         # Store the current state of the grid
         # grid_states.append(copy.deepcopy(grid))
 
-    simulation_animation(grid_states)
-    get_statistics(finished_vehicles, grid.vehicles)
+    # simulation_animation(grid_states, results_path)
+    save_results(finished_vehicles, grid.vehicles, results_path, traffic_light_model.__name__)

@@ -1,9 +1,9 @@
 import random
 from typing import List, Tuple
 
-from Models.direction import Direction, get_lane_number
-from Models.light import Light
-from Models.waiting_queue import WaitingQueue
+from models.direction import Direction, get_lane_number
+from models.light import Light
+from models.waiting_queue import WaitingQueue
 
 
 class Intersection(object):
