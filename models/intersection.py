@@ -40,7 +40,8 @@ class Intersection(object):
             if len([lane for lane in self.incoming[incoming_direction] if lane]) == 0:
                 continue
 
-            self.incoming[incoming_direction][Direction.get_lane_number(incoming_direction, direction)] = WaitingQueue()
+            lane_number = get_lane_number(incoming_direction, direction)
+            self.incoming[incoming_direction][lane_number] = WaitingQueue(incoming_direction, lane_number)
 
     def add_incoming_lane(self, direction):
         # For each outgoing lane of the intersection, add a incoming lane from the current direction.
@@ -48,7 +49,8 @@ class Intersection(object):
             if self.outgoing[outgoing_direction] is None or direction == outgoing_direction:
                 continue
 
-            self.incoming[direction][get_lane_number(direction, outgoing_direction)] = WaitingQueue()
+            lane_number = get_lane_number(direction, outgoing_direction)
+            self.incoming[direction][lane_number] = WaitingQueue(direction, lane_number)
 
     def add_traffic_lights(self):
         self.has_traffic_lights = True

@@ -68,4 +68,9 @@ class Vehicle(object):
         # Update the number of roads the vehicle still has to drive.
         self.roads_to_drive -= 1
 
-        return self.roads_to_drive == 0
+        # Remove the vehicle from the grid if it reached its destination and return True.
+        if self.roads_to_drive == 0:
+            self.waiting_queue.queue.remove(self)
+            return True
+
+        return False

@@ -39,6 +39,7 @@ def move_vehicles(grid, max_vehicles_per_step):
             vehicle.waiting_steps += 1
             continue
 
+        # Move the vehicle. If the vehicle reached its destination increase the finished vehicles counter.
         finished_vehicles += vehicle.move_vehicle()
 
     return finished_vehicles

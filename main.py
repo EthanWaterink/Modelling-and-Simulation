@@ -18,12 +18,14 @@ def main():
     for random_seed in random.sample(range(1000), config.SIMULATIONS_PER_MODEL):
         random.seed(random_seed)
 
-        # Generate the grid.
-        grid = Grid(config)
-
         # Try all models.
         for model in get_traffic_light_models():
+            # Generate the grid.
+            grid = Grid(config)
+
+            # Run the simulation.
             simulation.run(grid, model, config.MAX_VEHICLES_PER_STEP, results_file_name)
+
 
 
 if __name__ == "__main__":
