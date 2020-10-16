@@ -60,7 +60,7 @@ class Intersection(object):
             if (waiting_queue := self.incoming[D][T]) is not None:
                 waiting_queue.has_traffic_light = True
 
-    def required_traffic_lights(self):
+    def requires_traffic_lights(self):
         """
         Returns True if this intersections requires traffic lights, which is the case for 3-way and 4-way
         intersections. False otherwise

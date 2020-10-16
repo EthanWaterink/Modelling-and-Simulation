@@ -47,7 +47,7 @@ def setup_traffic_lights(intersections):
     Set up the traffic lights where necessary.
     """
     for intersection in [intersection for row in intersections for intersection in row]:
-        if intersection.required_traffic_lights():
+        if intersection.requires_traffic_lights():
             intersection.add_traffic_lights()
 
 
