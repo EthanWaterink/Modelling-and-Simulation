@@ -59,6 +59,7 @@ def save_results(finished_vehicles, vehicles, results_path, traffic_light_model)
         'model': traffic_light_model,
         'mean_number_of_steps': np.mean(finished_vehicles),
         'mean_number_of_traffic_lights': np.mean([v.number_of_encountered_traffic_lights for v in vehicles]),
+        'mean_number_of_waiting_steps': np.mean([v.waiting_steps for v in vehicles]),
         'simulation_score': np.mean([v.waiting_steps / v.number_of_encountered_traffic_lights for v in vehicles])
     }
 
