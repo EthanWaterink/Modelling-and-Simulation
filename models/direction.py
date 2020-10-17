@@ -1,35 +1,43 @@
 from enum import IntEnum
 
+from models.turning import Turning
+
 
 class Direction(IntEnum):
-    """The four orthogonal directions"""
+    """
+    The four orthogonal directions
+    """
     NORTH = 0
     EAST = 1
     SOUTH = 2
     WEST = 3
 
-    # Returns in what direction a vehicle is going after turning.
-    def turn(self, turning):
-        return (self + 1 + turning) % len(Direction)
+    def turn(self, turning: Turning):
+        """
+        Returns in what direction a vehicle is going after turning.
+        """
+        return Direction((self + 1 + turning) % len(Direction))
 
+    def opposite(self):
+        """
+        Return the direction that is opposite to itself
+        """
+        return Direction((self + 2) % len(Direction))
 
-def get_opposite_direction(direction):
-    return (direction + 2) % len(Direction)
+    def next(self):
+        """
+        Return the direction that is left of direction (clock-wise)
+        """
+        return Direction((self + 1) % len(Direction))
 
+    def lane(self, goal_direction):
+        """
+        Return the lane that goes to goal_direction
+        """
+        return Turning((goal_direction - self) % len(Turning))
 
-def get_next_direction(direction):
-    if direction < 3:
-        return direction + 1
-    else:
-        return 0
-
-
-def get_lane_number(origin_direction, goal_direction):
-    if goal_direction - origin_direction == 1 or goal_direction - origin_direction == -3:
-        return 0
-
-    if abs(goal_direction - origin_direction) == 2:
-        return 1
-
-    if goal_direction - origin_direction == -1 or goal_direction - origin_direction == 3:
-        return 2
+    def diff(self, other):
+        """
+        Return the difference between the other direction and itself
+        """
+        return Direction((other - self) % len(Direction))
