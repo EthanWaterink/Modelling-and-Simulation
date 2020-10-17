@@ -1,4 +1,3 @@
-from datetime import datetime
 import random
 
 import config
@@ -24,8 +23,9 @@ def main():
             grid = Grid(config)
 
             # Run the simulation.
-            simulation.run(grid, model, config.MAX_VEHICLES_PER_STEP, results_file_name)
-
+            simulation.run(grid, model)
+            # Save the results
+            simulation.save_results(grid.vehicles, results_file_name, model.__name__)
 
 
 if __name__ == "__main__":

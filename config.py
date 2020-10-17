@@ -5,11 +5,10 @@ SIMULATIONS_PER_MODEL = 10
 # Grid
 GRID_WIDTH = 6
 GRID_HEIGHT = 5
-ROAD_LENGTH = 1  # km
+ROAD_LENGTH = 1
 
 # Intersections
 NEIGHBOUR_PROBABILITY = 1  # The probability of an intersection being connected to a neighbouring one
-DEFAULT_LAST_DIRECTION_GREEN = 0
 
 # Vehicles
 VEHICLE_MIN_ROADS = 2

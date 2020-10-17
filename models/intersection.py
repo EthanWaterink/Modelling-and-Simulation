@@ -1,19 +1,22 @@
 import random
 from typing import List, Tuple
 
-from models.direction import Direction, get_lane_number
-from models.light import Light
+from models.direction import Direction
+from models.turning import Turning
 from models.waiting_queue import WaitingQueue
 
 
 class Intersection(object):
-    """Intersection object"""
+    """
+    An Intersection is a position on the grid at [y,x] and contains the incoming and outgoing lanes.
+    """
     incoming: List[List[WaitingQueue]]
 
-    def __init__(self, y, x, default_direction_green: Direction):
-        # An intersection has a maximum of 4 connected neighbours (one for each direction).
-        self.incoming = [[None, None, None], [None, None, None], [None, None, None], [None, None, None]]
-        self.outgoing = 4 * [None]
+    def __init__(self, y, x):
+        # The incoming lanes, one per Turning for each Direction
+        self.incoming = [[None for _ in Turning] for _ in Direction]
+        # The outgoing lanes, one for each Direction
+        self.outgoing = [None for _ in Direction]
 
         # Position [y,x] on the grid
         self.y = y
@@ -21,55 +24,59 @@ class Intersection(object):
 
         self.has_traffic_lights = False
 
+        # TODO: Traffic Light Model dependent variables should probably be decoupled
         # Used for the Clock Model.
         self.current_direction_green = None
 
-    def __str__(self):
-        return "Intersection[" + str(self.y) + "," + str(self.x) + "]"
+    def __repr__(self):
+        return "Intersection[{},{}]".format(self.y, self.x)
 
     def num_vehicles_waiting(self):
+        """
+        Returns the number of vehicles that are currently waiting at this intersection
+        """
         return sum(
             [len(waiting_queue.queue) for direction in self.incoming for waiting_queue in direction if waiting_queue])
 
-    def add_outgoing_lane(self, goal_intersection, direction):
-        # Add the outgoing lane to the list.
+    def add_outgoing_lane(self, goal_intersection, direction: Direction):
+        """
+        Add an outgoing lane to goal_intersection, which is at direction
+        """
         self.outgoing[direction] = goal_intersection
 
-        # Make it possible for every incoming direction to go to the newly added direction.
-        for incoming_direction in range(4):
-            if len([lane for lane in self.incoming[incoming_direction] if lane]) == 0:
-                continue
-
-            lane_number = get_lane_number(incoming_direction, direction)
-            self.incoming[incoming_direction][lane_number] = WaitingQueue(incoming_direction, lane_number)
-
-    def add_incoming_lane(self, direction):
-        # For each outgoing lane of the intersection, add a incoming lane from the current direction.
-        for outgoing_direction in range(4):
-            if self.outgoing[outgoing_direction] is None or direction == outgoing_direction:
-                continue
-
-            lane_number = get_lane_number(direction, outgoing_direction)
-            self.incoming[direction][lane_number] = WaitingQueue(direction, lane_number)
+    def add_incoming_lanes(self, direction: Direction, turning: Turning, max_vehicles_per_step: int):
+        """
+        Add an incoming lane at incoming[direction,turning]
+        """
+        self.incoming[direction][turning] = WaitingQueue(direction, turning, max_vehicles_per_step)
 
     def add_traffic_lights(self):
+        """
+        Add traffic lights to all waiting queues.
+        """
         self.has_traffic_lights = True
 
-        for incoming_direction in range(4):
-            for lane_number in range(3):
-                if (waiting_queue := self.incoming[incoming_direction][lane_number]) is not None:
-                    waiting_queue.has_traffic_light = True
+        for (D, T) in [(D, T) for D in Direction for T in Turning]:
+            if (waiting_queue := self.incoming[D][T]) is not None:
+                waiting_queue.has_traffic_light = True
+
+    def requires_traffic_lights(self):
+        """
+        Returns True if this intersections requires traffic lights, which is the case for 3-way and 4-way
+        intersections. False otherwise
+        """
+        return sum(1 for out in self.outgoing if out is not None)
 
     def get_random_waiting_queue(self):
+        """
+        Return a random waiting queue
+        """
         possible_waiting_queues = []
 
-        for incoming_direction in range(4):
-            for lane_number in range(3):
-                if self.incoming[incoming_direction][lane_number] is None:
-                    continue
+        for (D, T) in [(D, T) for D in Direction for T in Turning]:
+            if self.incoming[D][T] is not None:
+                possible_waiting_queues.append((D, T))
 
-                possible_waiting_queues.append((incoming_direction, lane_number))
-
-        waiting_queue: Tuple[int, int] = random.choice(possible_waiting_queues)
+        waiting_queue: Tuple[Direction, Turning] = random.choice(possible_waiting_queues)
 
         return waiting_queue
