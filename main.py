@@ -3,8 +3,10 @@ import random
 import config
 import simulation
 from services import file_service
-from traffic_light_models import get_traffic_light_models
 from models.grid import Grid
+from models.traffic_light_models.clock import Clock
+from models.traffic_light_models.local_optimum import LocalOptimum
+from models.traffic_light_models.global_optimum import GlobalOptimum
 
 
 def main():
@@ -14,18 +16,26 @@ def main():
     # This makes sure every run the same grids are generated.
     random.seed(config.RANDOM_SEED)
 
+    grid_number = 1
+
     for random_seed in random.sample(range(1000), config.SIMULATIONS_PER_MODEL):
         random.seed(random_seed)
 
-        # Try all models.
-        for model in get_traffic_light_models():
-            # Generate the grid.
-            grid = Grid(config)
+        # Generate the grid.
+        print("Grid number", grid_number)
+        grid = Grid(config)
 
+        # Try all models.
+        for model in [Clock(grid), LocalOptimum(), GlobalOptimum()]:
+            print("  running {} model".format(model.__class__.__name__))
             # Run the simulation.
             simulation.run(grid, model)
             # Save the results
-            simulation.save_results(grid.vehicles, results_file_name, model.__name__)
+            simulation.save_results(grid.vehicles, results_file_name, model.__class__.__name__)
+            # Reset the grid for the next simulation
+            grid.reset()
+
+        grid_number += 1
 
 
 if __name__ == "__main__":
