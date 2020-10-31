@@ -1,82 +1,71 @@
 import random
-from typing import List, Tuple
 
 from models.direction import Direction
-from models.turning import Turning
-from models.waiting_queue import WaitingQueue
+from models.road import Road
 
 
 class Intersection(object):
     """
     An Intersection is a position on the grid at [y,x] and contains the incoming and outgoing lanes.
     """
-    incoming: List[List[WaitingQueue]]
+    def __init__(self, x, y):
+        # The outgoing roads
+        self.outgoing_roads = {}
+        # The incoming roads
+        self.incoming_roads = {}
 
-    def __init__(self, y, x):
-        # The incoming lanes, one per Turning for each Direction
-        self.incoming = [[None for _ in Turning] for _ in Direction]
-        # The outgoing lanes, one for each Direction
-        self.outgoing = [None for _ in Direction]
-
-        # Position [y,x] on the grid
-        self.y = y
+        # Position [x,y] on the grid
         self.x = x
+        self.y = y
 
+        # True if this intersection has traffic lights, False otherwise
         self.has_traffic_lights = False
 
-        # TODO: Traffic Light Model dependent variables should probably be decoupled
-        # Used for the Clock Model.
-        self.current_direction_green = None
-
     def __repr__(self):
-        return "Intersection[{},{}]".format(self.y, self.x)
+        return "Intersection[{},{}]".format(self.x, self.y)
+
+    def position(self):
+        """
+        Return the position tuple (x, y)
+        """
+        return self.x, self.y
 
     def num_vehicles_waiting(self):
         """
         Returns the number of vehicles that are currently waiting at this intersection
         """
-        return sum(
-            [len(waiting_queue.queue) for direction in self.incoming for waiting_queue in direction if waiting_queue])
+        return sum([len(lane.queue) for lane in self.get_all_lanes()])
 
-    def add_outgoing_lane(self, goal_intersection, direction: Direction):
+    def add_road(self, goal_intersection, direction: Direction, road_length: int):
         """
         Add an outgoing lane to goal_intersection, which is at direction
         """
-        self.outgoing[direction] = goal_intersection
+        road = Road(self, goal_intersection, direction.opposite(), road_length)
+        self.outgoing_roads[direction] = road
+        goal_intersection.incoming_roads[direction.opposite()] = road
 
-    def add_incoming_lanes(self, direction: Direction, turning: Turning, max_vehicles_per_step: int):
+    def get_all_lanes(self):
         """
-        Add an incoming lane at incoming[direction,turning]
+        Get all the lanes at this intersection (by getting the lanes of the incoming roads).
         """
-        self.incoming[direction][turning] = WaitingQueue(direction, turning, max_vehicles_per_step)
+        lanes = []
+        for inc_road in self.incoming_roads.values():
+            for lane in inc_road.lanes.values():
+                lanes.append(lane)
+        return lanes
 
-    def add_traffic_lights(self):
+    def get_all_lanes_traffic_lights(self):
         """
-        Add traffic lights to all waiting queues.
+        Get all lanes at this intersection that have a traffic light.
         """
-        self.has_traffic_lights = True
+        lanes_TL = []
+        for lane in self.get_all_lanes():
+            if lane.has_traffic_light:
+                lanes_TL.append(lane)
+        return lanes_TL
 
-        for (D, T) in [(D, T) for D in Direction for T in Turning]:
-            if (waiting_queue := self.incoming[D][T]) is not None:
-                waiting_queue.has_traffic_light = True
-
-    def requires_traffic_lights(self):
-        """
-        Returns True if this intersections requires traffic lights, which is the case for 3-way and 4-way
-        intersections. False otherwise
-        """
-        return sum(1 for out in self.outgoing if out is not None)
-
-    def get_random_waiting_queue(self):
+    def get_random_lane(self):
         """
         Return a random waiting queue
         """
-        possible_waiting_queues = []
-
-        for (D, T) in [(D, T) for D in Direction for T in Turning]:
-            if self.incoming[D][T] is not None:
-                possible_waiting_queues.append((D, T))
-
-        waiting_queue: Tuple[Direction, Turning] = random.choice(possible_waiting_queues)
-
-        return waiting_queue
+        return random.choice(self.get_all_lanes())

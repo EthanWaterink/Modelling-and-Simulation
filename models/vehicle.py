@@ -1,27 +1,31 @@
 import random
 
-from models.direction import Direction
-from models.intersection import Intersection
-from models.light import Light
-from models.turning import Turning
-from models.waiting_queue import WaitingQueue
-
 
 class Vehicle(object):
     """
     A Vehicle drives from intersection to intersection and does so in a number of steps.
     """
-    waiting_queue: WaitingQueue
+    def __init__(self, roads_to_drive, road, lane):
+        # The road the vehicle is driving on
+        self.road = road
+        # The lane the vehicle leaves the road
+        self.lane = lane
+        # Add the vehicle to the lane.
+        lane.enter(self)
 
-    def __init__(self, roads_to_drive, origin_direction: Direction, location: Intersection):
+        # The number of roads to drive
         self.roads_to_drive = roads_to_drive
-        self.current_location = location
-        self.origin_direction = origin_direction
-        self.turning = self.get_turning()
 
+        # The number of steps driving
         self.steps_driving = 0
+        # The number of steps waiting
         self.steps_waiting = 0
-        self.number_of_encountered_traffic_lights = 0
+        # The number of traffic lights encountered
+        self.number_of_encountered_traffic_lights = 1 if lane.has_traffic_light else 0
+
+        # Used for resetting
+        self.start_lane = lane
+        self.start_roads_to_drive = roads_to_drive
 
     def is_finished(self):
         """
@@ -29,70 +33,36 @@ class Vehicle(object):
         """
         return self.roads_to_drive == 0
 
-    def can_drive(self):
-        """
-        Return True if the vehicle can drive, False otherwise.
-        """
-        # If there are no traffic lights at the current intersection, the vehicle can always drive.
-        if not self.current_location.has_traffic_lights:
-            return True
-
-        # If the traffic light is red, it cannot drive.
-        if self.waiting_queue.traffic_light == Light.RED:
-            return False
-
-        # If the traffic light is GREEN but the vehicle is waiting too far in the back of the queue, it cannot drive.
-        if not self.waiting_queue.can_drive_this_step(self):
-            return False
-
-        # In any other case, the vehicle can drive.
-        return True
-
     def total_steps(self):
         """
         Return the total number of steps = steps_driving + steps_waiting.
         """
         return self.steps_driving + self.steps_waiting
 
-    def get_turning(self):
+    def choose_lane(self):
         """
-        Get the next turning (one of the (max) three lanes)
+        Choose a random lane and enter it
         """
-        possible_turnings = [turning for turning in Turning
-                             if self.current_location.incoming[self.origin_direction][turning] is not None]
+        lane = random.choice(list(self.road.lanes.values()))
+        lane.enter(self)
+        self.lane = lane
 
-        return random.choice(possible_turnings)
-
-    def move_vehicle(self):
+    def cross_intersection(self):
         """
-        Update the states of the models to move the vehicle.
-        :return: Whether the vehicle arrived at its destination
+        Cross the intersection and enter the road
         """
-        # Compute the next direction by taking a turn from the current direction
-        next_direction = self.origin_direction.turn(self.turning)
-        # The next intersection is at the outgoing lane at next_direction
-        next_intersection = self.current_location.outgoing[next_direction]
+        self.lane.goes_to_road.enter(self)
+        self.road = self.lane.goes_to_road
 
-        # Remove the vehicle from the current intersection and add it to the next.
-        self.waiting_queue.queue.remove(self)
+    def reset(self):
+        """
+        Reset the vehicle by repositioning it and setting the starting values
+        """
+        self.lane = self.start_lane
+        self.lane.enter(self)
+        self.road = None
+        self.roads_to_drive = self.start_roads_to_drive
 
-        # Update the location.
-        self.current_location = next_intersection
-        self.origin_direction = next_direction.opposite()
-        self.turning = self.get_turning()
-        self.waiting_queue = self.current_location.incoming[self.origin_direction][self.turning]
-        self.waiting_queue.queue.append(self)
-
-        # Update the number of roads the vehicle still has to drive.
-        # TODO: account for the ROAD_LENGTH
-        self.roads_to_drive -= 1
-
-        # Remove the vehicle from the grid if it reached its destination and return True.
-        if self.is_finished():
-            self.waiting_queue.queue.remove(self)
-            return True
-
-        # Increment number of encountered traffic lights
-        self.number_of_encountered_traffic_lights += next_intersection.has_traffic_lights
-
-        return False
+        self.steps_waiting = 0
+        self.steps_driving = 0
+        self.number_of_encountered_traffic_lights = 1 if self.lane.has_traffic_light else 0
