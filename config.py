@@ -13,7 +13,7 @@ ROAD_LENGTH = 1  # The number of steps it takes to travel a road
 # Lane
 LANE_PROBABILITY = .9  # The probability of a lane at the end of a road
 MAX_VEHICLES_PER_STEP = 5  # The number of vehicles that can drive in one step when a light turns GREEN
-TRAFFIC_LIGHT_LENGTH = 1  # How long a traffic light will be green
+TRAFFIC_LIGHT_LENGTH = 1  # How many steps a traffic light will be GREEN
 
 # Vehicle
 VEHICLE_MIN_ROADS = 20

@@ -12,6 +12,7 @@ class Grid(object):
         self.intersections = setup.setup_intersections(config)
         self.vehicles = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
                                              config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
+        self.traffic_light_length = config.TRAFFIC_LIGHT_LENGTH
 
     def all_intersections_with_traffic_lights(self):
         """
