@@ -42,6 +42,23 @@ class Road(object):
         """
         return self.sections[-1]
 
+    def get_lanes_with_traffic_lights(self):
+        """
+        Returns a list of lanes that have a traffic light.
+        """
+        lanes = []
+        for lane in self.lanes:
+            if lane.has_traffic_light:
+                lanes.append(lane)
+        return lanes
+
+    def has_traffic_lights(self):
+        """
+        Returns True if this road has traffic lights, which is the case when at least one of the lanes have a traffic
+        light, False otherwise.
+        """
+        return len(self.get_lanes_with_traffic_lights()) > 0
+
     def update(self):
         """
         Update the vehicles that are driving on this road. All vehicles move one section further, which can be
