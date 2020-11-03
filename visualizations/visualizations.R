@@ -22,12 +22,5 @@ create_density_plot(results, "mean_number_of_traffic_lights")
 create_density_plot(results, "mean_number_of_waiting_steps")
 create_density_plot(results, "simulation_score")
 
-
-# TODO: maybe ANOVA test to compare all three?
-simulation_score_clock <- filter(results, model == 'Clock')$simulation_score
-simulation_score_local_optimum <- filter(results, model == 'LocalOptimum')$simulation_score
-simulation_score_global_optimum <- filter(results, model == 'GlobalOptimum')$simulation_score
-
-# T-test
-print(t.test(simulation_score_clock, simulation_score_local_optimum, paired = TRUE))
-
+# ANOVA
+print(summary(aov(results$simulation_score ~ results$model)))

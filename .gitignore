@@ -134,6 +134,7 @@ dmypy.json
 # Project
 # Ignore all the results
 results/*
+visualizations/figures/
 # ... but keep the folder
 !results/.gitkeep
 animation.gif/
