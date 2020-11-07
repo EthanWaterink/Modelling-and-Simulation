@@ -38,3 +38,8 @@ create_density_plot(results, "simulation_score")
 
 # ANOVA
 print(summary(aov(results$simulation_score ~ results$model)))
+
+# T-test
+simulation_score_local_optimum <- filter(results, model == 'LocalOptimum')$simulation_score
+simulation_score_global_optimum <- filter(results, model == 'GlobalOptimum')$simulation_score
+print(t.test(simulation_score_local_optimum, simulation_score_global_optimum, paired = TRUE))
