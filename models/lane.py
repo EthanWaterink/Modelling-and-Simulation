@@ -1,3 +1,6 @@
+import random
+
+import config
 from models.light import Light
 
 
@@ -5,11 +8,9 @@ class Lane(object):
     """
     Lane at the end of a road where vehicles wait for traffic lights (if any)
     """
-    def __init__(self, direction, turning, max_vehicles_per_step: int, road):
+    def __init__(self, direction, turning, road):
         # Vehicles wait in a queue
         self.queue = []
-        # How many vehicles can drive in one step
-        self.max_vehicles_per_step = max_vehicles_per_step
 
         # True if this lane has a traffic light
         self.has_traffic_light = False
@@ -39,21 +40,41 @@ class Lane(object):
         if self.has_traffic_light:
             self.traffic_light = state
 
+    def turn_green(self):
+        """
+        Set the state of the traffic light to GREEN.
+        """
+        self.set_traffic_light_state(Light.GREEN)
+
+    def turn_red(self):
+        """
+        Set the state of the traffic light to RED.
+        """
+        self.set_traffic_light_state(Light.RED)
+
     def is_green(self):
         """
         True if the light is green, False otherwise
         """
         return self.traffic_light == Light.GREEN
 
+    def has_vehicles(self):
+        """
+        True if there is at least one vehicle, False otherwise.
+        """
+        return len(self.queue) > 0
+
     def update_on_green(self):
         """
-        Update vehicles in this lane given that the light is green
+        Update vehicles in this lane given that the light is green.
         """
-        # Only the first max_vehicles_per_step vehicles can drive at this step
-        for vehicle in self.queue[:self.max_vehicles_per_step]:
+        # The flow through can differ slightly
+        flow_through = config.FLOW_THROUGH_BASE + random.choice(config.FLOW_THROUGH_DIFF)
+        # Only the first flow_through vehicles can drive at this step
+        for vehicle in self.queue[:flow_through]:
             vehicle.cross_intersection()
             vehicle.steps_driving += 1
-        del self.queue[:self.max_vehicles_per_step]
+        del self.queue[:flow_through]
 
         # The remaining vehicles have to wait
         for vehicle in self.queue:

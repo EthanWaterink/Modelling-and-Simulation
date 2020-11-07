@@ -1,3 +1,6 @@
+import random
+
+import config
 from models.lane import Lane
 from models.turning import Turning
 
@@ -6,7 +9,7 @@ class Road(object):
     """
     Road that connects two intersections and has lanes at the end.
     """
-    def __init__(self, origin, destination, end_direction, length):
+    def __init__(self, origin, destination, end_direction):
         # The intersection at the start of the road
         self.origin = origin
         # The intersection that is at the end of the road
@@ -19,16 +22,16 @@ class Road(object):
         self.end_direction = end_direction
 
         # The road is divided into length sections
-        self.sections = [[] for _ in range(length)]
+        self.sections = [[] for _ in range(config.ROAD_LENGTH_BASE + random.choice(config.ROAD_LENGTH_DIFF))]
 
     def __repr__(self):
         return "Road[{} -> {}; lanes: {}]".format(self.origin, self.destination, self.lanes)
 
-    def add_lane(self, turning: Turning, max_vehicles_per_step: int, road):
+    def add_lane(self, turning: Turning, road):
         """
         Add an incoming lane at incoming[direction,turning]
         """
-        self.lanes[turning] = Lane(self.end_direction, turning, max_vehicles_per_step, road)
+        self.lanes[turning] = Lane(self.end_direction, turning, road)
 
     def enter(self, vehicle):
         """
@@ -42,6 +45,23 @@ class Road(object):
         """
         return self.sections[-1]
 
+    def get_lanes_with_traffic_lights(self):
+        """
+        Returns a list of lanes that have a traffic light.
+        """
+        lanes = []
+        for lane in self.lanes:
+            if lane.has_traffic_light:
+                lanes.append(lane)
+        return lanes
+
+    def has_traffic_lights(self):
+        """
+        Returns True if this road has traffic lights, which is the case when at least one of the lanes have a traffic
+        light, False otherwise.
+        """
+        return len(self.get_lanes_with_traffic_lights()) > 0
+
     def update(self):
         """
         Update the vehicles that are driving on this road. All vehicles move one section further, which can be
@@ -53,7 +73,7 @@ class Road(object):
         num_finished = 0
 
         # The vehicles on the final section have reached the end of the road
-        for vehicle in self.sections.pop():
+        for vehicle in self.sections.pop(0):
             vehicle.roads_to_drive -= 1
             # If it is not finished yet, it chooses a lane to enter
             if not vehicle.is_finished():

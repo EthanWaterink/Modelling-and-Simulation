@@ -1,6 +1,7 @@
 import random
 import operator
 
+import config
 from models.direction import Direction
 from models.intersection import Intersection
 from models.turning import Turning
@@ -8,7 +9,7 @@ from models.vehicle import Vehicle
 from models.traffic_light_models.traffic_light_models import is_traffic_light_combination_possible
 
 
-def setup_intersections(config):
+def setup_intersections():
     """
     Set up the intersections by adding outgoing and incoming lanes, and traffic lights.
     :return: the intersections
@@ -73,7 +74,7 @@ def setup_intersections(config):
             for intersection in [intersection for row in intersections for intersection in row]:
                 for D in Direction:
                     if (neighbour := get_neighbour(intersection.position(), D)) and gets_outgoing_road():
-                        intersection.add_road(neighbour, D, config.ROAD_LENGTH)
+                        intersection.add_road(neighbour, D)
 
         def minimum_roads():
             """
@@ -86,7 +87,7 @@ def setup_intersections(config):
                     # Choose an outgoing road
                     direction, destination = random.choice(list(options.items()))
                     # Add it to the intersection
-                    intersection.add_road(destination, direction, config.ROAD_LENGTH)
+                    intersection.add_road(destination, direction)
 
                 # Check if this intersection has at least one incoming road
                 if len(intersection.incoming_roads) == 0:
@@ -94,12 +95,12 @@ def setup_intersections(config):
                     # Choose an incoming road
                     direction, destination = random.choice(list(options.items()))
                     # Add it to the intersection (as an outgoing road of the destination intersection)
-                    destination.add_road(intersection, direction.opposite(), config.ROAD_LENGTH)
+                    destination.add_road(intersection, direction.opposite())
 
         def fix_single_roads():
             """
             Make sure that for every incoming road there is an outgoing road (which is not on the same side because
-            we do not allow u-turns!). Also make sure that for every outgoing lane there is an incoming lane.
+            we do not allow U-turns!). Also make sure that for every outgoing lane there is an incoming lane.
             """
             # Keep track if any intersection was updated
             intersection_updated = False
@@ -122,7 +123,7 @@ def setup_intersections(config):
                         # Choose an intersection
                         direction, destination = random.choice(list(options_outgoing.items()))
                         # Add the outgoing road to the intersection
-                        intersection.add_road(destination, direction, config.ROAD_LENGTH)
+                        intersection.add_road(destination, direction)
 
                         intersection_updated = True
 
@@ -144,7 +145,7 @@ def setup_intersections(config):
                         direction, destination = random.choice(list(options_incoming.items()))
                         # Add the incoming road to the intersection (as an outgoing road of the destination
                         # intersection)
-                        destination.add_road(intersection, direction.opposite(), config.ROAD_LENGTH)
+                        destination.add_road(intersection, direction.opposite())
 
                         intersection_updated = True
 
@@ -180,8 +181,7 @@ def setup_intersections(config):
                     for T in Turning:
                         # Check if there is an outgoing road when turning T from D
                         if D.turn(T) in intersection.outgoing_roads and gets_incoming_lane():
-                            road.add_lane(T, config.MAX_VEHICLES_PER_STEP,
-                                          intersection.outgoing_roads[D.turn(T)])
+                            road.add_lane(T, intersection.outgoing_roads[D.turn(T)])
 
         def minimum_per_incoming_road():
             """
@@ -200,8 +200,7 @@ def setup_intersections(config):
                         # Choose a random lane
                         T_choice = random.choice(options)
                         # Add it to the road
-                        road_inc.add_lane(T_choice, config.MAX_VEHICLES_PER_STEP,
-                                          intersection.outgoing_roads[D.turn(T_choice)])
+                        road_inc.add_lane(T_choice, intersection.outgoing_roads[D.turn(T_choice)])
 
         def minimum_per_outgoing_road():
             """
@@ -234,7 +233,7 @@ def setup_intersections(config):
                         # Get the lane that would go to road_out
                         T = D_inc.lane(D_out)
                         # Add the lane to the road
-                        road_inc.add_lane(T, config.MAX_VEHICLES_PER_STEP, road_out)
+                        road_inc.add_lane(T, road_out)
 
         # Setup the initial lanes
         initial_lanes()
@@ -259,6 +258,11 @@ def setup_intersections(config):
                             lane_ref.has_traffic_light = True
                             lane_other.has_traffic_light = True
 
+        # For all intersections that have traffic lights, set the traffic light length
+        for intersection in [intersection for row in intersections for intersection in row]:
+            if intersection.has_traffic_lights:
+                intersection.traffic_light_length = config.TRAFFIC_LIGHT_LENGTH
+
     # Initialize the grid and all intersections.
     intersections = [[Intersection(x, y) for y in range(config.GRID_HEIGHT)] for x in range(config.GRID_WIDTH)]
 
@@ -270,7 +274,7 @@ def setup_intersections(config):
     return intersections
 
 
-def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roads_to_drive):
+def setup_vehicles(grid, num_vehicles):
     """
     Set up the vehicles on the grid. The number of vehicles N \\in [min_vehicles,max_ vehicles] and each vehicles drives
     a distance D \\in [min_roads_to_drive, max_roads_to_drive]
@@ -280,14 +284,14 @@ def setup_vehicles(grid, min_vehicles, max_vehicles, min_roads_to_drive, max_roa
     vehicles = []
 
     # Make a random number of vehicles.
-    for _ in range(random.randint(min_vehicles, max_vehicles)):
+    for _ in range(num_vehicles):
         # Get a random intersection.
-        x = random.randint(0, grid.width - 1)
-        y = random.randint(0, grid.height - 1)
+        x = random.randint(0, config.GRID_WIDTH - 1)
+        y = random.randint(0, config.GRID_HEIGHT - 1)
         intersection = grid.intersections[x][y]
 
         # Determine the number of roads the vehicle has to drive.
-        roads_to_drive = random.randint(min_roads_to_drive, max_roads_to_drive)
+        roads_to_drive = random.randint(config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
 
         # Choose a lane
         lane = intersection.get_random_lane()

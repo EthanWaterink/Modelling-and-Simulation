@@ -21,6 +21,9 @@ class Intersection(object):
         # True if this intersection has traffic lights, False otherwise
         self.has_traffic_lights = False
 
+        # The traffic light length of the traffic lights at this intersection (if they exist)
+        self.traffic_light_length = None
+
     def __repr__(self):
         return "Intersection[{},{}]".format(self.x, self.y)
 
@@ -36,11 +39,11 @@ class Intersection(object):
         """
         return sum([len(lane.queue) for lane in self.get_all_lanes()])
 
-    def add_road(self, goal_intersection, direction: Direction, road_length: int):
+    def add_road(self, goal_intersection, direction: Direction):
         """
         Add an outgoing lane to goal_intersection, which is at direction
         """
-        road = Road(self, goal_intersection, direction.opposite(), road_length)
+        road = Road(self, goal_intersection, direction.opposite())
         self.outgoing_roads[direction] = road
         goal_intersection.incoming_roads[direction.opposite()] = road
 
@@ -54,15 +57,25 @@ class Intersection(object):
                 lanes.append(lane)
         return lanes
 
-    def get_all_lanes_traffic_lights(self):
+    def get_all_lanes_with_traffic_lights(self):
         """
         Get all lanes at this intersection that have a traffic light.
         """
-        lanes_TL = []
+        lanes_with_traffic_lights = []
         for lane in self.get_all_lanes():
             if lane.has_traffic_light:
-                lanes_TL.append(lane)
-        return lanes_TL
+                lanes_with_traffic_lights.append(lane)
+        return lanes_with_traffic_lights
+
+    def get_all_lanes_with_vehicles(self):
+        """
+        Get all lanes that have at least one vehicle.
+        """
+        lanes_with_vehicles = []
+        for lane in self.get_all_lanes():
+            if lane.has_vehicles():
+                lanes_with_vehicles.append(lane)
+        return lanes_with_vehicles
 
     def get_random_lane(self):
         """

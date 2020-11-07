@@ -25,6 +25,7 @@ class Vehicle(object):
 
         # Used for resetting
         self.start_lane = lane
+        self.start_road = road
         self.start_roads_to_drive = roads_to_drive
 
     def is_finished(self):
@@ -60,7 +61,7 @@ class Vehicle(object):
         """
         self.lane = self.start_lane
         self.lane.enter(self)
-        self.road = None
+        self.road = self.start_road
         self.roads_to_drive = self.start_roads_to_drive
 
         self.steps_waiting = 0
