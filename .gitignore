@@ -138,3 +138,5 @@ results/*
 # Ignore the figures but keep the folder
 visualizations/figures/
 !visualizations/figures/.gitkeep
+animation.gif/
+sketch.drawio
