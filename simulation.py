@@ -18,12 +18,12 @@ def run(grid, traffic_light_model):
         # The number of vehicles that finished at this step.
         num_finished = 0
 
-        # Update the traffic lights once every grid.traffic_light_length
-        if step % grid.traffic_light_length == 0:
-            # Set the states of the traffic lights at all intersections using the traffic light model.
-            for intersection in [intersection for row in grid.intersections for intersection in row]:
-                if intersection.has_traffic_lights:
-                    traffic_light_model.update(intersection)
+        # Update the states of the traffic lights at all intersections with traffic lights using the traffic
+        # light model.
+        for intersection in grid.all_intersections_with_traffic_lights():
+            # Update the traffic lights once every intersection.traffic_light_length
+            if step % intersection.traffic_light_length == 0:
+                traffic_light_model.update(intersection)
 
         # Update all the roads.
         for intersection in [intersection for row in grid.intersections for intersection in row]:
@@ -37,8 +37,41 @@ def run(grid, traffic_light_model):
                     lane.update_on_green()
                 else:
                     lane.update_on_red()
-        # Move one step forward in time by moving the vehicles. Subtract the number of finished vehicles.
+
+        # Subtract the number of finished vehicles.
         vehicles_driving -= num_finished
+
+        # Increment the step
+        step += 1
+
+
+def simulation_score(vehicles):
+    """
+    Return the simulation score.
+    """
+    return np.mean([v.steps_waiting / v.number_of_encountered_traffic_lights for v in vehicles
+                    if v.number_of_encountered_traffic_lights != 0])
+
+
+def mean_number_of_waiting_steps(vehicles):
+    """
+    Return the mean number of waiting steps.
+    """
+    return np.mean([v.steps_waiting for v in vehicles])
+
+
+def mean_number_of_traffic_lights_encountered(vehicles):
+    """
+    Return the mean number of traffic lights encountered.
+    """
+    return np.mean([v.number_of_encountered_traffic_lights for v in vehicles])
+
+
+def mean_number_of_steps(vehicles):
+    """
+    Return the mean number of total steps.
+    """
+    return np.mean([v.total_steps() for v in vehicles])
 
 
 def save_results(vehicles, results_path, traffic_light_model):
@@ -47,11 +80,10 @@ def save_results(vehicles, results_path, traffic_light_model):
     """
     results = {
         'model': traffic_light_model,
-        'mean_number_of_steps': np.mean([v.total_steps() for v in vehicles]),
-        'mean_number_of_traffic_lights': np.mean([v.number_of_encountered_traffic_lights for v in vehicles]),
-        'mean_number_of_waiting_steps': np.mean([v.steps_waiting for v in vehicles]),
-        'simulation_score': np.mean([v.steps_waiting / v.number_of_encountered_traffic_lights for v in vehicles
-                                     if v.number_of_encountered_traffic_lights != 0])
+        'mean_number_of_steps': mean_number_of_steps(vehicles),
+        'mean_number_of_traffic_lights': mean_number_of_traffic_lights_encountered(vehicles),
+        'mean_number_of_waiting_steps': mean_number_of_waiting_steps(vehicles),
+        'simulation_score': simulation_score(vehicles)
     }
 
     file_service.write_results_to_file(results_path + '/results.csv', results)

@@ -11,6 +11,9 @@ class FirstComeFirstServe(TrafficLightModel):
         self.queues = {}
 
     def setup(self, grid):
+        """
+        Setup the First Come First Serve traffic light model.
+        """
         # For every intersection store a list (queue) of lanes
         self.queues = {}
 
@@ -20,7 +23,7 @@ class FirstComeFirstServe(TrafficLightModel):
 
     def update(self, intersection: Intersection):
         """
-        Update the intersection with the FirstComeFirstServe model.
+        Update the intersection with the First Come First Serve model.
         """
         # Get the queue of the intersection
         queue = self.queues[intersection]

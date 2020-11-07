@@ -7,11 +7,19 @@ from models.turning import Turning
 
 class Clock(TrafficLightModel):
     """
-    The Clock model.
+    The Clock model cycles through traffic light configurations.
     """
-    def __init__(self, grid):
+    def __init__(self):
         # For every intersection (with a traffic light) store a deque of List[Lane], which are the lanes_to_change
         # for a direction
+        self.lanes_per_direction = {}
+
+        self.is_first_time_calling = True
+
+    def setup(self, grid):
+        """
+        Setup the Clock traffic light model.
+        """
         self.lanes_per_direction = {}
 
         # Choose random direction to start with (from the possible incoming roads with traffic lights)
@@ -37,10 +45,9 @@ class Clock(TrafficLightModel):
         lanes = []
 
         # Get the lanes at this direction
-        if direction in (roads := intersection.incoming_roads):
-            for lane_change in roads[direction].lanes.values():
-                if lane_change.has_traffic_light:
-                    lanes.append(lane_change)
+        for lane_change in intersection.incoming_roads[direction].lanes.values():
+            if lane_change.has_traffic_light:
+                lanes.append(lane_change)
 
         # Go to the next direction
         next_direction = direction.next()
@@ -57,24 +64,24 @@ class Clock(TrafficLightModel):
         """
         Update the intersection with the Clock model.
         """
-
+        lanes = self.lanes_per_direction[intersection]
         # If this method is called for the first time, turn all lights GREEN at a random direction.
         if self.is_first_time_calling:
             # Shuffle the deque, which determines the order in which they will turn GREEN.
-            random.shuffle(self.lanes_per_direction[intersection])
+            random.shuffle(lanes)
             # Set all traffic lights at the current direction to GREEN.
-            for lane in self.lanes_per_direction[intersection][0]:
-                lane.set_traffic_light_state(Light.GREEN)
+            for lane in lanes[0]:
+                lane.turn_green()
             self.is_first_time_calling = False
             return
 
         # Set all traffic lights at the current direction to RED.
-        for lane in self.lanes_per_direction[intersection][0]:
-            lane.set_traffic_light_state(Light.RED)
+        for lane in lanes[0]:
+            lane.turn_red()
 
         # Go to the next direction
-        self.lanes_per_direction[intersection].rotate(1)
+        lanes.rotate(1)
 
         # Set all traffic lights at the new direction to GREEN.
-        for lane in self.lanes_per_direction[intersection][0]:
-            lane.set_traffic_light_state(Light.GREEN)
+        for lane in lanes[0]:
+            lane.turn_green()

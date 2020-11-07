@@ -132,9 +132,9 @@ dmypy.json
 .idea
 
 # Project
-# Ignore all the results
+# Ignore all the results but keep the folder
 results/*
-# ... but keep the folder
 !results/.gitkeep
-animation.gif/
-sketch.drawio
+# Ignore the figures but keep the folder
+visualizations/figures/
+!visualizations/figures/.gitkeep

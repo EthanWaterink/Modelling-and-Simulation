@@ -1,3 +1,6 @@
+import random
+
+import config
 from models.lane import Lane
 from models.turning import Turning
 
@@ -6,7 +9,7 @@ class Road(object):
     """
     Road that connects two intersections and has lanes at the end.
     """
-    def __init__(self, origin, destination, end_direction, length):
+    def __init__(self, origin, destination, end_direction):
         # The intersection at the start of the road
         self.origin = origin
         # The intersection that is at the end of the road
@@ -19,16 +22,16 @@ class Road(object):
         self.end_direction = end_direction
 
         # The road is divided into length sections
-        self.sections = [[] for _ in range(length)]
+        self.sections = [[] for _ in range(config.ROAD_LENGTH_BASE + random.choice(config.ROAD_LENGTH_DIFF))]
 
     def __repr__(self):
         return "Road[{} -> {}; lanes: {}]".format(self.origin, self.destination, self.lanes)
 
-    def add_lane(self, turning: Turning, max_vehicles_per_step: int, road):
+    def add_lane(self, turning: Turning, road):
         """
         Add an incoming lane at incoming[direction,turning]
         """
-        self.lanes[turning] = Lane(self.end_direction, turning, max_vehicles_per_step, road)
+        self.lanes[turning] = Lane(self.end_direction, turning, road)
 
     def enter(self, vehicle):
         """
@@ -70,7 +73,7 @@ class Road(object):
         num_finished = 0
 
         # The vehicles on the final section have reached the end of the road
-        for vehicle in self.sections.pop():
+        for vehicle in self.sections.pop(0):
             vehicle.roads_to_drive -= 1
             # If it is not finished yet, it chooses a lane to enter
             if not vehicle.is_finished():

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from models.intersection import Intersection
-from models.light import Light
 from models.lane import Lane
 
 # The traffic light combinations a.k.a. TLComb
@@ -19,6 +18,13 @@ class TrafficLightModel(ABC):
     The base class of traffic light models
     """
     @abstractmethod
+    def setup(self, grid):
+        """
+        Setup the traffic light model.
+        """
+        return
+
+    @abstractmethod
     def update(self, intersection: Intersection):
         """
         Update the intersection's traffic lights.
@@ -32,7 +38,7 @@ def all_traffic_lights_red(intersection):
     """
     for road in intersection.incoming_roads.values():
         for lane in road.lanes.values():
-            lane.set_traffic_light_state(Light.RED)
+            lane.turn_red()
 
 
 def is_traffic_light_combination_possible(reference_lane, other_lane):
@@ -50,13 +56,13 @@ def is_traffic_light_combination_possible(reference_lane, other_lane):
     return TRAFFIC_LIGHT_COMBINATIONS[ref_T][oth_D][oth_T]
 
 
-def find_conflicts(lanes: [Lane], reference_lane):
+def find_non_conflicting(reference_lane, lanes: [Lane]):
     """
     Find the lanes the would cause a conflict if they were GREEN simultaneously with reference_lane
     """
-    conflicts = []
-    for lane_other in lanes:
-        if not is_traffic_light_combination_possible(reference_lane, lane_other):
-            conflicts.append(lane_other)
+    non_conflicting = []
+    for other_lane in lanes:
+        if is_traffic_light_combination_possible(reference_lane, other_lane):
+            non_conflicting .append(other_lane)
 
-    return conflicts
+    return non_conflicting
