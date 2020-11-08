@@ -14,6 +14,7 @@ class Clock(TrafficLightModel):
         # for a direction
         self.lanes_per_direction = {}
 
+        # Used to check if the Update method is called for the first time or not
         self.is_first_time_calling = True
 
     def setup(self, grid):
@@ -27,10 +28,10 @@ class Clock(TrafficLightModel):
             # Initialize the empty deque
             self.lanes_per_direction[intersection] = deque()
             # Check all incoming roads
-            for D_inc, road_inc in intersection.incoming_roads.items():
+            for inc_D, inc_road in intersection.incoming_roads.items():
                 # Only keep the roads that have traffic lights
-                if road_inc.has_traffic_lights:
-                    self.lanes_per_direction[intersection].append(self.lanes_to_change(intersection, D_inc))
+                if inc_road.has_traffic_lights:
+                    self.lanes_per_direction[intersection].append(self.lanes_to_change(intersection, inc_D))
 
         # Keep track if this is the first time calling the update method.
         self.is_first_time_calling = True

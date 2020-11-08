@@ -6,7 +6,6 @@ class Grid(object):
     """
     The Grid contains all the (width * height) intersections and all vehicles
     """
-
     def __init__(self, num_vehicles):
         self.intersections = setup.setup_intersections()
         self.vehicles = setup.setup_vehicles(self, num_vehicles)

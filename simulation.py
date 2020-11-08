@@ -5,7 +5,7 @@ from services import file_service
 
 def run(grid, traffic_light_model):
     """
-    Run the simulation
+    Run the simulation on the grid with traffic_light_model.
     """
     # Keep track of the number of vehicles that are driving.
     vehicles_driving = len(grid.vehicles)

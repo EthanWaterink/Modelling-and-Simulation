@@ -19,19 +19,20 @@ def main():
     # This makes sure every run the same grids are generated.
     random.seed(config.RANDOM_SEED)
 
-    # The
+    # A list of different traffic loads (low to high)
     traffic_loads = np.linspace(config.TRAFFIC_LOAD_START, config.TRAFFIC_LOAD_END, config.TRAFFIC_LOAD_NUM, dtype=int)
 
     # Initialize the models
     models = [Clock(), FirstComeFirstServe(), LocalOptimum(), GlobalOptimum()]
 
-    # Keep for all
+    # Record some data for each model.
     data = {}
     for model in models:
         data[model] = {
             'score': np.zeros(config.TRAFFIC_LOAD_NUM),
             'waiting_steps': np.zeros(config.TRAFFIC_LOAD_NUM),
-            'traffic_lights': np.zeros(config.TRAFFIC_LOAD_NUM)
+            'traffic_lights': np.zeros(config.TRAFFIC_LOAD_NUM),
+            'steps': np.zeros(config.TRAFFIC_LOAD_NUM)
         }
 
     # Loop over all num_vehicles
@@ -49,11 +50,12 @@ def main():
                 # Run the simulation.
                 simulation.run(grid, model)
 
-                # Compute the simulation score and add it
+                # Compute data and add it
                 data[model]['score'][idx] += simulation.simulation_score(grid.vehicles)
                 data[model]['waiting_steps'][idx] += simulation.mean_number_of_waiting_steps(grid.vehicles)
                 data[model]['traffic_lights'][idx] += simulation.mean_number_of_traffic_lights_encountered(grid.vehicles)
-                # Save the results
+                data[model]['steps'][idx] += simulation.mean_number_of_steps(grid.vehicles)
+                # Save the results to file
                 simulation.save_results(grid.vehicles, results_file_name, model.__class__.__name__)
 
                 # Reset the grid for the next simulation
@@ -64,6 +66,7 @@ def main():
             data[model]['score'][idx] /= config.SIMULATIONS_PER_MODEL
             data[model]['waiting_steps'][idx] /= config.SIMULATIONS_PER_MODEL
             data[model]['traffic_lights'][idx] /= config.SIMULATIONS_PER_MODEL
+            data[model]['steps'][idx] /= config.SIMULATIONS_PER_MODEL
 
     # Plot the results
     plot.plot_performance_vs_vehicles(data, traffic_loads, config)

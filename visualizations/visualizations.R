@@ -2,7 +2,6 @@ library(dplyr)
 library(ggplot2)
 
 
-# TODO: Fill in the path of the folder containing the results (including /).
 results_path <- "visualizations/"
 
 results <- read.csv(paste0(results_path, "results.csv"))

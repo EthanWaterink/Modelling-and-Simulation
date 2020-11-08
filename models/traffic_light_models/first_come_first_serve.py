@@ -5,7 +5,7 @@ from models.traffic_light_models.traffic_light_models import *
 
 class FirstComeFirstServe(TrafficLightModel):
     """
-    Local optimum model with first come first serve basis.
+    Local model with first come first serve basis.
     """
     def __init__(self):
         self.queues = {}
@@ -17,7 +17,7 @@ class FirstComeFirstServe(TrafficLightModel):
         # For every intersection store a list (queue) of lanes
         self.queues = {}
 
-        # Initialize the list
+        # Initialize the lists
         for intersection in grid.all_intersections_with_traffic_lights():
             self.queues[intersection] = []
 
