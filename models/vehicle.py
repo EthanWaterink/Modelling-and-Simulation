@@ -1,76 +1,69 @@
 import random
 
-from models.direction import Direction, get_opposite_direction, get_lane_number
-from models.intersection import Intersection
-from models.light import Light
-from models.waiting_queue import WaitingQueue
-
 
 class Vehicle(object):
-    """Vehicle object"""
-    last_location: Intersection
-    waiting_queue: WaitingQueue
+    """
+    A Vehicle drives from intersection to intersection and does so in a number of steps.
+    """
+    def __init__(self, roads_to_drive, road, lane):
+        # The road the vehicle is driving on
+        self.road = road
+        # The lane the vehicle leaves the road
+        self.lane = lane
+        # Add the vehicle to the lane.
+        lane.enter(self)
 
-    def __init__(self, roads_to_drive, origin_direction, location: Intersection):
+        # The number of roads to drive
         self.roads_to_drive = roads_to_drive
-        self.origin_direction = origin_direction
-        self.current_location = location
-        self.next_direction = self.get_next_direction()
+
+        # The number of steps driving
         self.steps_driving = 0
+        # The number of steps waiting
+        self.steps_waiting = 0
+        # The number of traffic lights encountered
+        self.number_of_encountered_traffic_lights = 1 if lane.has_traffic_light else 0
 
-        self.number_of_encountered_traffic_lights = 0
-        self.waiting_steps = 0
+        # Used for resetting
+        self.start_lane = lane
+        self.start_road = road
+        self.start_roads_to_drive = roads_to_drive
 
-    def get_next_direction(self):
-        possible_directions = [self.current_location.outgoing.index(lane) for lane in self.current_location.outgoing if
-                               lane]
-
-        # If there are more possible directions than one, don't choose the direction the vehicle came from.
-        if len(possible_directions) > 1 and self.origin_direction in possible_directions:
-            possible_directions.remove(self.origin_direction)
-
-        return random.choice(possible_directions)
-
-    def can_drive(self, max_vehicles_per_step):
-        # If there are no traffic lights at the current intersection, the vehicle can always drive.
-        if not self.current_location.has_traffic_lights:
-            return True
-
-        # If the traffic light is red, it cannot drive.
-        if self.waiting_queue.traffic_light == Light.RED:
-            return False
-
-        # If the traffic light is green but the car is waiting too far in the back of the queue, it cannot drive.
-        # TODO: check in the current waiting queue whether the car can drive
-        return True
-
-    def move_vehicle(self):
+    def is_finished(self):
         """
-        Update the states of the models to move the vehicle.
-        :return: Whether the vehicle arrived at its destination
+        Returns true if the vehicle is done driving
         """
-        current_intersection = self.current_location
-        next_intersection = current_intersection.outgoing[self.next_direction]
+        return self.roads_to_drive == 0
 
-        # Remove the vehicle from the current intersection and add it to the next.
-        self.waiting_queue.queue.remove(self)
+    def total_steps(self):
+        """
+        Return the total number of steps = steps_driving + steps_waiting.
+        """
+        return self.steps_driving + self.steps_waiting
 
-        # Update the location.
-        self.last_location = self.current_location
-        self.current_location = next_intersection
-        self.origin_direction = get_opposite_direction(self.next_direction)
-        self.next_direction = self.get_next_direction()
-        self.waiting_queue = self.current_location.incoming[self.origin_direction][
-            get_lane_number(self.origin_direction, self.next_direction)]
-        self.waiting_queue.queue.append(self)
-        self.number_of_encountered_traffic_lights += next_intersection.has_traffic_lights
+    def choose_lane(self):
+        """
+        Choose a random lane and enter it
+        """
+        lane = random.choice(list(self.road.lanes.values()))
+        lane.enter(self)
+        self.lane = lane
 
-        # Update the number of roads the vehicle still has to drive.
-        self.roads_to_drive -= 1
+    def cross_intersection(self):
+        """
+        Cross the intersection and enter the road
+        """
+        self.lane.goes_to_road.enter(self)
+        self.road = self.lane.goes_to_road
 
-        # Remove the vehicle from the grid if it reached its destination and return True.
-        if self.roads_to_drive == 0:
-            self.waiting_queue.queue.remove(self)
-            return True
+    def reset(self):
+        """
+        Reset the vehicle by repositioning it and setting the starting values
+        """
+        self.lane = self.start_lane
+        self.lane.enter(self)
+        self.road = self.start_road
+        self.roads_to_drive = self.start_roads_to_drive
 
-        return False
+        self.steps_waiting = 0
+        self.steps_driving = 0
+        self.number_of_encountered_traffic_lights = 1 if self.lane.has_traffic_light else 0

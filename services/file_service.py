@@ -4,6 +4,9 @@ import os
 
 
 def get_results_path(results_folder_path):
+    """
+    Return the folder path where the results will be saved.
+    """
     results_folder_path += datetime.now().strftime('%Y-%m-%d %H.%M.%S')
 
     if not os.path.isdir(results_folder_path):
@@ -13,6 +16,9 @@ def get_results_path(results_folder_path):
 
 
 def write_results_to_file(file_path, results: dict):
+    """
+    Write the results to file_path
+    """
     with open(file_path, mode='a+', newline='') as file:
         writer = csv.writer(file)
 

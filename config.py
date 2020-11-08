@@ -1,22 +1,38 @@
-RESULTS_FOLDER_PATH = './results/'
+# Simulation
 RANDOM_SEED = 42
-SIMULATIONS_PER_MODEL = 10
+TRAFFIC_LOAD_NUM = 20
+TRAFFIC_LOAD_START = 10
+TRAFFIC_LOAD_END = 3000
+SIMULATIONS_PER_MODEL = 100
 
 # Grid
-GRID_WIDTH = 6
-GRID_HEIGHT = 5
-ROAD_LENGTH = 1  # km
+GRID_WIDTH = 10
+GRID_HEIGHT = 10
 
-# Intersections
-NEIGHBOUR_PROBABILITY = 1  # The probability of an intersection being connected to a neighbouring one
-DEFAULT_LAST_DIRECTION_GREEN = 0
+# Road
+ROAD_PROBABILITY = .9  # The probability of an intersection being connected to a neighbouring one (one-directional)
+ROAD_LENGTH_BASE = 1  # The number of steps it takes to travel a road
+ROAD_LENGTH_DIFF = 85*[0] + 10*[+1] + 5*[+2]
 
-# Vehicles
-VEHICLE_MIN_ROADS = 2
-VEHICLE_MAX_ROADS = 5
-MIN_VEHICLES = 3
-MAX_VEHICLES = 4
-DEFAULT_DIRECTION = 0
+# Lane
+LANE_PROBABILITY = .9  # The probability of a lane at the end of a road
+TRAFFIC_LIGHT_LENGTH = 1  # How many steps a traffic light will be GREEN
+FLOW_THROUGH_BASE = 8  # The number of vehicles that can drive in one step when a light turns GREEN
+FLOW_THROUGH_DIFF = 5*[+1] + 80*[0] + 10*[-1] + 5*[-2]
 
-# Run
-MAX_VEHICLES_PER_STEP = 4
+# Vehicle
+VEHICLE_MIN_ROADS = (GRID_WIDTH+GRID_HEIGHT) // 2
+VEHICLE_MAX_ROADS = (GRID_WIDTH+GRID_HEIGHT) * 2
+
+# Results
+RESULTS_FOLDER_PATH = './results/'
+
+
+def to_string():
+    return "spm={}, " \
+           "w={}, " \
+           "h={}, " \
+           "r_base={}, " \
+           "t={}, " \
+           "f_base={}" \
+        .format(SIMULATIONS_PER_MODEL, GRID_WIDTH, GRID_HEIGHT, ROAD_LENGTH_BASE, TRAFFIC_LIGHT_LENGTH, FLOW_THROUGH_BASE)

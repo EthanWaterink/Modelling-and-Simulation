@@ -1,41 +1,35 @@
-import matplotlib.pyplot as plt
-
+import config
 import setup
 
 
 class Grid(object):
-    def __init__(self, config):
-        self.width = config.GRID_WIDTH
-        self.height = config.GRID_HEIGHT
-        self.intersections = setup.setup_intersections(config)
-        self.vehicles = setup.setup_vehicles(self, config.MIN_VEHICLES, config.MAX_VEHICLES,
-                                             config.VEHICLE_MIN_ROADS, config.VEHICLE_MAX_ROADS)
+    """
+    The Grid contains all the (width * height) intersections and all vehicles
+    """
+    def __init__(self, num_vehicles):
+        self.intersections = setup.setup_intersections()
+        self.vehicles = setup.setup_vehicles(self, num_vehicles)
+        self.traffic_light_length = config.TRAFFIC_LIGHT_LENGTH
 
-    # Create a plot of the grid (returns the figure)
-    def plot_grid(self):
-        fig = plt.figure()
-        for row in self.intersections:
-            for intersection in row:
-                if intersection is None:
-                    continue
+    def all_intersections_with_traffic_lights(self):
+        """
+        Returns a list with all intersections that have traffic lights.
+        """
+        intersections_with_traffic_lights = []
+        for intersection in [intersection for row in self.intersections for intersection in row]:
+            if intersection.has_traffic_lights:
+                intersections_with_traffic_lights.append(intersection)
+        return intersections_with_traffic_lights
 
-                # Plot lanes
-                for i in range(0, 4):
-                    neighbour = intersection.outgoing[i]
-                    if neighbour is not None:
-                        plt.arrow(intersection.x, intersection.y, (neighbour.x - intersection.x) / 2,
-                                  (neighbour.y - intersection.y) / 2, head_width=.2, head_length=.2, color='grey')
-                        plt.plot([intersection.x, neighbour.x], [intersection.y, neighbour.y], '-', color='black')
+    def reset(self):
+        """
+        Reset the grid (by resetting all the roads, lanes and vehicles)
+        """
+        for intersection in [intersection for row in self.intersections for intersection in row]:
+            for road in intersection.outgoing_roads.values():
+                for lane in road.lanes.values():
+                    lane.reset()
+                road.reset()
 
-                # Plot number of vehicles
-                plt.text(
-                    intersection.x,
-                    intersection.y,
-                    s=str(intersection.num_vehicles_waiting()),
-                    color="black", backgroundcolor="lightgrey", va="center", ha="center", fontsize=12
-                )
-
-                # Set the title
-                plt.title("Simulation street grid with traffic lights")
-
-        return fig
+        for vehicle in self.vehicles:
+            vehicle.reset()
